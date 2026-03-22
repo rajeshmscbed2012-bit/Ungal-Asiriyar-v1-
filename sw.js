@@ -6,7 +6,7 @@ const CACHE_NAME = 'ungal-aasiriyar-v4.0';
 const ASSETS = [
   './',
   './index.html',
-  './index.html',
+  './ungal_aasiriyar.html',
   './manifest.json',
   './20260315_085358.png',
   'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap',
