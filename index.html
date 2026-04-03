@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>உங்கள் ஆசிரியர் · v9</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ஆசிரியர்">
+<link rel="icon" href="20260315_085358.png" type="image/png">
+<link rel="apple-touch-icon" href="20260315_085358.png">
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ════════════════════════════════════════
+   உங்கள் ஆசிரியர் v8  ·  Card Stack UI
+   Tinder-style swipeable card deck
+════════════════════════════════════════ */
+:root{
+  --bg:     #f5f5f7;
+  --white:  #ffffff;
+  --border: #e5e5ea;
+  --text:   #1c1c1e;
+  --text2:  #6e6e73;
+  --text3:  #aeaeb2;
+  --ind:    #5856d6;
+  --ind-lt: #eeeef8;
+  --grn:    #34c759;
+  --grn-lt: #e8f9ed;
+  --red:    #ff3b30;
+  --red-lt: #fff0ef;
+  --org:    #ff9500;
+  --org-lt: #fff4e0;
+  --blu:    #007aff;
+  --blu-lt: #e5f1ff;
+  --r:  18px;
+  --r2: 14px;
+  --r3: 10px;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-float:0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ════════════════════════════════════════
+   LOGIN  ─  Full-height centered stack
+════════════════════════════════════════ */
+#login-page{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 20px;
+  gap:12px;
+}
+
+/* Auto-login strip */
+/* quick login removed */
+
+/* Main login card */
+.login-card{
+  width:100%;max-width:380px;
+  background:var(--white);
+  border-radius:var(--r);
+  box-shadow:var(--shadow-float);
+  overflow:hidden;
+}
+.login-hero{
+  background:linear-gradient(155deg,#5856d6 0%,#af52de 60%,#ff2d55 100%);
+  padding:32px 24px 28px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.login-hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-logo{
+  width:72px;height:72px;border-radius:20px;
+  object-fit:cover;margin:0 auto 14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  border:3px solid rgba(255,255,255,0.3);
+  position:relative;z-index:1;display:block;
+}
+.hero-title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px;position:relative;z-index:1;}
+.hero-sub{font-size:11px;color:rgba(255,255,255,.7);font-weight:500;margin-top:4px;letter-spacing:.5px;text-transform:uppercase;position:relative;z-index:1;}
+
+.login-body{padding:24px;}
+.fl{display:flex;flex-direction:column;gap:12px;}
+.inp-wrap{position:relative;}
+.inp-lbl{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.inp{
+  width:100%;padding:13px 16px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:var(--r2);color:var(--text);
+  font-size:14px;font-weight:500;font-family:inherit;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.inp:focus{border-color:var(--ind);box-shadow:0 0 0 3px rgba(88,86,214,.1);background:#fff;}
+.inp::placeholder{color:var(--text3);}
+.btn-login{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#5856d6,#af52de);
+  color:#fff;border:none;border-radius:var(--r2);
+  font-size:15px;font-weight:700;font-family:inherit;
+  cursor:pointer;letter-spacing:.2px;
+  box-shadow:0 4px 16px rgba(88,86,214,.35);
+  transition:opacity .15s,transform .12s;
+}
+.btn-login:active{opacity:.9;transform:scale(.98);}
+.err-strip{
+  background:var(--red-lt);color:var(--red);
+  border:1px solid rgba(255,59,48,.2);
+  border-radius:var(--r3);padding:10px 14px;
+  font-size:12px;font-weight:600;display:none;
+}
+.err-strip.show{display:block;}
+
+/* ════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════ */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden;}
+#app.on{display:flex;}
+
+/* ─── STATUS BAR ─── */
+.statusbar{
+  height:52px;
+  background:linear-gradient(135deg,#5856d6,#af52de);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;flex-shrink:0;
+  position:relative;z-index:100;
+}
+.sb-left{display:flex;align-items:center;gap:10px;}
+.sb-logo{width:30px;height:30px;border-radius:9px;object-fit:cover;}
+.sb-title{font-size:15px;font-weight:700;color:#fff;}
+.sb-right{display:flex;gap:8px;align-items:center;}
+.sb-user{
+  font-size:11px;font-weight:600;color:#fff;
+  background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);
+  padding:4px 12px;border-radius:20px;
+}
+.ib{
+  width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;color:#fff;
+  transition:background .15s;
+}
+.ib:hover{background:rgba(255,255,255,0.25);}
+
+/* ─── CARD DECK VIEWPORT ─── */
+.deck-viewport{
+  flex:1;overflow:hidden;
+  position:relative;
+  padding-bottom:70px; /* bottom nav */
+}
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;
+  height:70px;
+  background:var(--white);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;
+  z-index:100;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-shadow:0 -4px 20px rgba(0,0,0,0.06);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;transition:color .15s;
+  color:var(--text3);font-size:10px;font-weight:600;
+  border:none;background:none;font-family:inherit;
+  padding:8px 4px 6px;
+}
+.nav-item.on{color:var(--ind);}
+.nav-icon{font-size:22px;line-height:1;transition:transform .15s;}
+.nav-item.on .nav-icon{transform:scale(1.1);}
+.nav-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:linear-gradient(135deg,var(--ind),#af52de);
+  display:none;
+}
+.nav-item.on .nav-dot{display:block;}
+
+/* ════════════════════════════════════════
+   CARD DECK SYSTEM  (Tinder-style)
+════════════════════════════════════════ */
+.deck-panel{
+  display:none;
+  position:absolute;inset:0;
+  padding:16px 16px 0;
+  overflow-y:auto;overflow-x:hidden;
+}
+.deck-panel.on{display:block;}
+
+/* Stack header */
+.stack-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.stack-title{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px;}
+.stack-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+.stack-action{
+  padding:8px 14px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;border:none;font-family:inherit;
+  transition:all .15s;
+}
+
+/* ─── DASHBOARD BENTO ─── */
+.dash-grid{display:flex;flex-direction:column;gap:12px;}
+.dash-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+.stat-tile{
+  border-radius:var(--r);
+  padding:16px 14px;
+  box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
+}
+.stat-tile::after{
+  content:'';position:absolute;
+  width:70px;height:70px;border-radius:50%;
+  bottom:-18px;right:-18px;opacity:.2;
+  background:rgba(255,255,255,0.5);
+}
+.stat-num{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;color:#fff;}
+.stat-lbl{font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;margin-top:4px;}
+.stat-icon{font-size:1.4rem;margin-bottom:6px;}
+.tile-ind{background:linear-gradient(135deg,#5856d6,#af52de);}
+.tile-grn{background:linear-gradient(135deg,#34c759,#30d158);}
+.tile-org{background:linear-gradient(135deg,#ff9500,#ff6b00);}
+.wide-tile{background:linear-gradient(135deg,var(--white),#f8f8ff);}
+
+
+.tile-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ─── CARD STACK (Questions / Marks rows) ─── */
+.card-stack-wrap{
+  position:relative;
+  min-height:200px;
+  margin-bottom:16px;
+}
+
+/* Individual swipe card */
+.scard{
+  background:var(--white);
+  border-radius:var(--r);
+  box-shadow:var(--shadow-card);
+  padding:18px;
+  margin-bottom:10px;
+  position:relative;
+  overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  cursor:grab;
+  user-select:none;
+  border-left:4px solid var(--border);
+}
+.scard[data-type="mcq"]{border-left-color:var(--ind);}
+.scard[data-type="desc"]{border-left-color:var(--grn);}
+.scard.score-row{border-left-color:var(--org);cursor:default;}
+.scard:active{cursor:grabbing;}
+.scard.dragging{box-shadow:var(--shadow-float);z-index:10;}
+.scard.swipe-left{
+  animation:swipeLeft .3s ease forwards;
+}
+.scard.swipe-right{
+  animation:swipeRight .3s ease forwards;
+}
+@keyframes swipeLeft{to{transform:translateX(-120%) rotate(-12deg);opacity:0;}}
+@keyframes swipeRight{to{transform:translateX(120%) rotate(12deg);opacity:0;}}
+
+/* Swipe indicator overlays */
+.scard-edit-stamp{
+  position:absolute;top:16px;right:16px;
+  background:var(--grn);color:#fff;
+  font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;
+  opacity:0;transition:opacity .15s;pointer-events:none;
+  transform:rotate(8deg);
+}
+.scard-del-stamp{
+  position:absolute;top:16px;left:16px;
+  background:var(--red);color:#fff;
+  font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;
+  opacity:0;transition:opacity .15s;pointer-events:none;
+  transform:rotate(-8deg);
+}
+.scard.show-edit .scard-edit-stamp{opacity:1;}
+.scard.show-del .scard-del-stamp{opacity:1;}
+
+/* Card content */
+.sc-num{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;
+  margin-bottom:10px;
+}
+.sc-num.mcq{background:var(--ind-lt);color:var(--ind);}
+.sc-num.desc{background:var(--grn-lt);color:var(--grn);}
+.sc-num.score{background:var(--org-lt);color:var(--org);}
+
+.sc-q{font-size:14px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:10px;}
+.sc-opts{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.sc-opt{
+  font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;
+  background:var(--bg);border:1px solid var(--border);color:var(--text2);
+}
+.sc-opt.correct{background:var(--grn-lt);border-color:rgba(52,199,89,.3);color:var(--grn);}
+.sc-ans{
+  background:var(--grn-lt);border-radius:var(--r3);
+  padding:10px 12px;font-size:12px;color:var(--grn);
+  font-weight:500;line-height:1.5;margin-bottom:10px;
+}
+.sc-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.sc-chip{
+  font-size:10px;font-weight:600;color:var(--text3);
+  background:var(--bg);padding:3px 9px;border-radius:20px;
+}
+
+/* Card action buttons */
+.sc-actions{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  padding-top:4px;
+}
+
+/* Swipe hint */
+.swipe-hint{
+  text-align:center;padding:10px;
+  font-size:11px;color:var(--text3);font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.hint-arrow{font-size:14px;}
+
+/* Empty state */
+.empty-card{
+  background:var(--white);border-radius:var(--r);
+  padding:40px 20px;text-align:center;
+  box-shadow:var(--shadow-card);
+}
+.empty-icon{font-size:3rem;margin-bottom:10px;}
+.empty-text{font-size:14px;color:var(--text2);font-weight:600;}
+
+/* ─── FORM CARD ─── */
+.form-card{
+  background:var(--white);border-radius:var(--r);
+  box-shadow:var(--shadow-card);
+  overflow:hidden;margin-bottom:12px;
+}
+.fc-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  font-size:13px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,rgba(88,86,214,0.04),transparent);
+  border-left:3px solid var(--ind);
+}
+.fc-body{padding:16px 18px;}
+.fc-foot{padding:14px 18px;border-top:1px solid var(--border);}
+
+/* Form elements */
+.fg{margin-bottom:10px;}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.flbl{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.finp,.fsel,.ftxt{
+  width:100%;padding:11px 14px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:var(--r3);color:var(--text);
+  font-size:13px;font-weight:500;font-family:inherit;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.finp:focus,.fsel:focus,.ftxt:focus{border-color:var(--ind);box-shadow:0 0 0 3px rgba(88,86,214,.1);background:#fff;}
+.fsel option{background:#fff;}
+.ftxt{resize:vertical;}
+
+/* Pills */
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}
+.pill{
+  padding:7px 14px;font-size:12px;font-weight:600;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:20px;cursor:pointer;color:var(--text2);
+  transition:all .15s;font-family:inherit;border:none;
+  border:1.5px solid var(--border);
+}
+.pill.on{background:linear-gradient(135deg,var(--ind),#af52de);color:#fff;border-color:var(--ind);box-shadow:0 3px 10px rgba(88,86,214,.3);}
+
+/* Method cards (upload type selector) */
+.method-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.mc{
+  background:var(--bg);border:2px solid var(--border);
+  border-radius:var(--r2);padding:14px 10px;
+  text-align:center;cursor:pointer;transition:all .2s;
+}
+.mc:hover{border-color:var(--ind);}
+.mc.on{border-color:var(--ind);background:linear-gradient(135deg,#eeeef8,#f3e8ff);}
+.mc:nth-child(1).on{border-color:var(--grn);}
+.mc:nth-child(2).on{border-color:#af52de;}
+.mc:nth-child(3).on{border-color:var(--blu);}
+.mc:nth-child(4).on{border-color:var(--org);}
+.mc-icon{font-size:1.6rem;margin-bottom:5px;}
+.mc-name{font-size:12px;font-weight:700;color:var(--text);}
+.mc-sub{font-size:10px;color:var(--text2);margin-top:1px;}
+
+/* Drop zone */
+.dropzone{
+  border:2px dashed var(--border);border-radius:var(--r2);
+  padding:24px;text-align:center;cursor:pointer;
+  transition:all .2s;
+}
+.dropzone:hover{border-color:var(--grn);background:var(--grn-lt);}
+
+/* Status */
+.smsg{font-size:12px;font-weight:600;padding:10px 14px;border-radius:var(--r3);margin-top:8px;display:none;}
+.smsg.ok{background:var(--grn-lt);color:var(--grn);border:1px solid rgba(52,199,89,.2);}
+.smsg.er{background:var(--red-lt);color:var(--red);border:1px solid rgba(255,59,48,.2);}
+
+/* Mark list table inside card */
+.tbl-card{
+  background:var(--white);border-radius:var(--r);
+  box-shadow:var(--shadow-card);overflow:hidden;margin-bottom:12px;
+}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--bg);color:var(--text2);padding:10px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:11px 10px;font-size:12px;text-align:center;border-bottom:1px solid var(--border);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--bg);}
+.pct-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;letter-spacing:.3px;}
+.pct-grn{background:linear-gradient(135deg,#34c759,#30d158);color:#fff;}
+.pct-org{background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff;}
+.pct-red{background:linear-gradient(135deg,#ff3b30,#ff453a);color:#fff;}
+.time-chip{font-size:10px;color:var(--text3);display:block;margin-top:2px;}
+
+/* Analytics cards */
+.ana-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.ana-stat{background:var(--white);border-radius:var(--r2);padding:14px;text-align:center;box-shadow:var(--shadow-card);}
+.ana-num{font-size:24px;font-weight:800;letter-spacing:-.5px;}
+.ana-lbl{font-size:10px;color:var(--text2);font-weight:600;margin-top:2px;}
+
+/* Loading dots */
+.loading{text-align:center;padding:32px;color:var(--text3);}
+.ldots{display:inline-flex;gap:5px;}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:ldot .8s ease-in-out infinite;}
+.ldot:nth-child(2){animation-delay:.16s;}
+.ldot:nth-child(3){animation-delay:.32s;}
+@keyframes ldot{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1);}}
+.count-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--ind-lt);color:var(--ind);display:inline-block;margin-bottom:10px;}
+
+/* Topic item v8 */
+.topic-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;margin:3px;}
+.topic-pill button{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:0 2px;}
+
+/* ════════════════════════════════════════
+   BOTTOM SHEETS  (Settings / Certificate)
+════════════════════════════════════════ */
+.sheet-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  z-index:9000;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.sheet-bg.open{opacity:1;pointer-events:all;}
+.sheet{
+  background:var(--white);
+  border-radius:24px 24px 0 0;
+  width:100%;max-width:600px;max-height:88vh;
+  overflow-y:auto;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.32,1.06,.5,1);
+}
+.sheet-bg.open .sheet{transform:translateY(0);}
+@media(min-width:580px){
+  .sheet-bg{align-items:center;padding:20px;}
+  .sheet{border-radius:20px;max-height:84vh;}
+}
+.sheet::-webkit-scrollbar{width:3px;}
+.sheet-handle{width:40px;height:4px;background:linear-gradient(90deg,var(--ind),#af52de);border-radius:2px;margin:12px auto 0;}
+.sheet-head{
+  padding:14px 20px 13px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--white);z-index:1;
+}
+.sheet-title{font-size:15px;font-weight:700;color:var(--text);}
+.sheet-close{width:30px;height:30px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.sheet-body{padding:16px 20px;}
+
+/* Settings rows */
+.srow{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:13px 15px;margin-bottom:8px;}
+.srow.col{flex-direction:column;align-items:stretch;gap:10px;}
+.srow-l{display:flex;align-items:center;gap:10px;}
+.sico{font-size:1.2rem;width:34px;height:34px;background:var(--white);border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;}
+.sname{font-size:13px;font-weight:600;color:var(--text);}
+.ssub{font-size:11px;color:var(--text2);}
+.tog{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;}
+.tog-sl{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:26px;transition:.25s;}
+.tog-sl:before{content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 2px 4px rgba(0,0,0,.15);}
+.tog input:checked+.tog-sl{background:var(--ind);}
+.tog input:checked+.tog-sl:before{transform:translateX(20px);}
+.font-row{display:flex;gap:6px;}
+.fbtn{flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:inherit;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;}
+.fbtn.on{background:var(--ind);color:#fff;border-color:var(--ind);}
+
+/* ─── POPUP ─── */
+#popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;}
+#popup-box{background:var(--white);border-radius:20px;padding:22px 20px;width:100%;max-width:300px;text-align:center;box-shadow:var(--shadow-float);}
+#popup-icon{font-size:2.4rem;margin-bottom:10px;}
+#popup-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
+#popup-msg{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5;}
+.pbrow{display:flex;gap:8px;}
+.pbtn{flex:1;padding:11px;border-radius:12px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.pbtn-cancel{background:var(--bg);color:var(--text2);}
+.pbtn-ok{background:var(--ind);color:#fff;}
+.pbtn-confirm,.pbtn-danger{background:var(--red);color:#fff;}
+
+/* ─── CERTIFICATE ─── */
+.cert-inner{background:#fff;border-radius:16px;padding:22px 18px;color:#1e293b;position:relative;overflow:hidden;}
+.cert-corner{position:absolute;width:54px;height:54px;opacity:.12;}
+.cert-ghead{background:linear-gradient(135deg,#4f46e5,#7c3aed,#db2777);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px;}
+
+/* Utility */
+.hidden{display:none!important;}
+body.font-lg{font-size:16px;}
+.sep{height:1px;background:var(--border);margin:10px 0;}
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="login-page">
+
+  <!-- Quick login removed -->
+  <div id="auto-banner" class="hidden" style="display:none!important"><div id="auto-name"></div></div>
+
+  <div class="login-card">
+    <div class="login-hero">
+      <img src="20260315_085358.png" class="hero-logo" onerror="this.outerHTML='<div style=\'font-size:2.5rem;margin:0 auto 14px;text-align:center;position:relative;z-index:1;\'>🎓</div>'">
+      <div class="hero-title">உங்கள் ஆசிரியர்</div>
+      <div class="hero-sub">Teacher &amp; Admin Portal · v9</div>
+    </div>
+    <div class="login-body">
+      <div class="fl">
+        <div>
+          <label class="inp-lbl">USERNAME</label>
+          <input class="inp" id="l-user" type="text" placeholder="பயனர்பெயர்" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-pwd').focus()">
+        </div>
+        <div>
+          <label class="inp-lbl">PASSWORD</label>
+          <input class="inp" id="l-pwd" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="btn-login" onclick="doLogin()">உள்ளே நுழைய →</button>
+        <div class="err-strip" id="login-err">தவறான பயனர்பெயர் / கடவுச்சொல்</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════ APP ════════════ -->
+<div id="app">
+
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <div class="sb-left">
+      <img src="20260315_085358.png" class="sb-logo" onerror="this.style.display='none'">
+      <span class="sb-title">ஆசிரியர்</span>
+    </div>
+    <div class="sb-right">
+      <div class="sb-user" id="topbar-user">-</div>
+      <div class="ib" onclick="openSheet('settings-sheet')">⚙</div>
+      <div class="ib" onclick="doLogout()" style="font-size:14px;">←</div>
+    </div>
+  </div>
+
+  <!-- Deck Viewport -->
+  <div class="deck-viewport">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="deck-panel on" id="panel-dash">
+      <div class="dash-grid" style="padding-bottom:16px;">
+        <div class="stack-header">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="20260315_085358.png" style="width:36px;height:36px;border-radius:10px;object-fit:cover;box-shadow:0 2px 8px rgba(88,86,214,0.2);" onerror="this.style.display='none'">
+            <div><div class="stack-title">Dashboard</div><div class="stack-sub">Overview</div></div>
+          </div>
+        </div>
+        <div class="dash-stat-row">
+          <div class="stat-tile tile-ind">
+            <div class="stat-icon">👨‍🎓</div>
+            <div class="stat-num" id="dash-students">0</div>
+            <div class="stat-lbl">மாணவர்</div>
+          </div>
+          <div class="stat-tile tile-grn">
+            <div class="stat-icon">❓</div>
+            <div class="stat-num" id="dash-questions">0</div>
+            <div class="stat-lbl">கேள்விகள்</div>
+          </div>
+          <div class="stat-tile tile-org">
+            <div class="stat-icon">📝</div>
+            <div class="stat-num" id="dash-attempts">0</div>
+            <div class="stat-lbl">முயற்சி</div>
+          </div>
+        </div>
+        <div class="wide-tile">
+          <div class="tile-label">📊 Subject Performance</div>
+          <div id="dash-subject-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MCQ UPLOAD ── -->
+    <div class="deck-panel" id="panel-mcq">
+      <div class="stack-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#5856d6,#af52de);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🎯</div>
+          <div><div class="stack-title">1 மார்க்</div><div class="stack-sub">MCQ Questions</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-head">வகுப்பு · பாடம் · Term</div>
+        <div class="fc-body">
+          <div class="fl2">
+            <div class="fg"><label class="flbl">வகுப்பு</label><select class="fsel" id="mcq-class"></select></div>
+            <div class="fg"><label class="flbl">பாடம்</label><select class="fsel" id="mcq-subject" onchange="loadMcqTopics()"></select></div>
+          </div>
+          <label class="flbl">Term</label>
+          <div class="pill-row">
+            <button class="pill on" data-t="term1" onclick="selectMcqTerm('term1')">Term 1</button>
+            <button class="pill" data-t="term2" onclick="selectMcqTerm('term2')">Term 2</button>
+            <button class="pill" data-t="term3" onclick="selectMcqTerm('term3')">Term 3</button>
+          </div>
+          <input type="hidden" id="mcq-selected-term" value="term1">
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-head">📖 தலைப்பு</div>
+        <div class="fc-body">
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input class="finp" id="mcq-new-topic" placeholder="புதிய தலைப்பு…" style="flex:1;">
+            <button onclick="addMcqTopic()" style="padding:10px 16px;border-radius:var(--r3);background:var(--grn);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">+</button>
+          </div>
+          <div id="mcq-topics-list" style="display:flex;flex-wrap:wrap;min-height:24px;margin-bottom:10px;"></div>
+          <select class="fsel" id="mcq-topic"></select>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-head">📤 Upload Method</div>
+        <div class="fc-body">
+          <div class="method-row">
+            <div class="mc on" id="mc-excel" onclick="switchMcqTab('excel')"><div class="mc-icon">📊</div><div class="mc-name">Excel</div><div class="mc-sub">Template</div></div>
+            <div class="mc" id="mc-ai" onclick="switchMcqTab('ai')"><div class="mc-icon">🤖</div><div class="mc-name">AI</div><div class="mc-sub">Auto-generate</div></div>
+            <div class="mc" id="mc-bulk" onclick="switchMcqTab('bulk')"><div class="mc-icon">📋</div><div class="mc-name">Bulk</div><div class="mc-sub">6 lines/Q</div></div>
+            <div class="mc" id="mc-single" onclick="switchMcqTab('single')"><div class="mc-icon">✏️</div><div class="mc-name">Single</div><div class="mc-sub">One by one</div></div>
+          </div>
+
+          <!-- Excel -->
+          <div id="mcq-excel-panel">
+            <button onclick="downloadExcelTemplate()" style="padding:10px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">↓ Template</button>
+            <div class="dropzone" onclick="document.getElementById('excel-file-input').click()">
+              <div style="font-size:1.8rem;margin-bottom:6px;">📂</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Excel File select செய்க</div>
+              <div id="excel-file-name" style="font-size:11px;color:var(--grn);font-weight:600;margin-top:4px;"></div>
+            </div>
+            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display:none" onchange="handleExcelFile(this)">
+            <div id="excel-preview" style="margin-top:10px;display:none;">
+              <div id="excel-preview-count" style="font-size:12px;font-weight:600;margin-bottom:6px;"></div>
+              <div id="excel-preview-table" style="max-height:160px;overflow-y:auto;border-radius:var(--r3);border:1px solid var(--border);"></div>
+              <button onclick="uploadExcelQuestions()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--r3);background:var(--grn);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Upload</button>
+            </div>
+            <div id="excel-status" class="smsg"></div>
+          </div>
+
+          <!-- AI -->
+          <div id="mcq-ai-panel" class="hidden">
+            <div class="fl2" style="margin-bottom:8px;">
+              <div><label class="flbl">Count</label><select class="fsel" id="ai-q-count"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option></select></div>
+              <div><label class="flbl">Language</label><select class="fsel" id="ai-language"><option value="tamil">தமிழ்</option><option value="english">English</option><option value="both">Both</option></select></div>
+            </div>
+            <label class="flbl">Topic</label>
+            <textarea class="ftxt" id="ai-topic-input" rows="3" placeholder="எ.கா: தமிழ் வேற்றுமை உருபுகள்…"></textarea>
+            <button id="ai-generate-btn" onclick="generateAIQuestions()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--r3);background:linear-gradient(135deg,#5856d6,#af52de);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">✦ AI Generate</button>
+            <div id="ai-status" class="smsg"></div>
+            <div id="ai-preview" style="margin-top:10px;display:none;">
+              <div id="ai-preview-count" style="font-size:12px;font-weight:600;margin-bottom:6px;"></div>
+              <div id="ai-questions-list" style="max-height:220px;overflow-y:auto;"></div>
+              <button onclick="uploadAIQuestions()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--r3);background:var(--grn);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Save</button>
+            </div>
+          </div>
+
+          <!-- Bulk -->
+          <div id="mcq-bulk-panel" class="hidden">
+            <div style="background:var(--blu-lt);border-radius:var(--r3);padding:11px;margin-bottom:10px;">
+              <div style="font-size:11px;font-weight:700;color:var(--blu);margin-bottom:5px;">6 lines per question:</div>
+              <pre style="font-size:11px;color:var(--text2);line-height:1.7;">கேள்வி&#10;Opt A · B · C · D&#10;சரியான விடை</pre>
+            </div>
+            <div style="position:relative;">
+              <textarea class="ftxt" id="simple-text" rows="10" placeholder="கேள்வி 1&#10;…" oninput="previewBulkCount()"></textarea>
+              <div id="bulk-count-badge" style="position:absolute;top:8px;right:10px;background:var(--ind);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;display:none;"></div>
+            </div>
+            <button onclick="uploadMcqQuestions()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--r3);background:var(--ind);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Upload</button>
+            <div id="mcq-status" class="smsg"></div>
+          </div>
+
+          <!-- Single -->
+          <div id="mcq-single-panel" class="hidden">
+            <label class="flbl">கேள்வி</label>
+            <input class="finp" id="single-question" placeholder="Question…" style="margin-bottom:8px;">
+            <div class="fl2">
+              <input class="finp" id="single-opt1" placeholder="A" oninput="updateSingleAnswerSelect()">
+              <input class="finp" id="single-opt2" placeholder="B" oninput="updateSingleAnswerSelect()">
+              <input class="finp" id="single-opt3" placeholder="C" oninput="updateSingleAnswerSelect()">
+              <input class="finp" id="single-opt4" placeholder="D" oninput="updateSingleAnswerSelect()">
+            </div>
+            <select class="fsel" id="single-answer" style="margin-top:8px;"><option value="">✓ Correct Answer</option></select>
+            <button onclick="uploadSingleMcq()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r3);background:var(--ind);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">+ Add</button>
+            <div id="single-mcq-status" class="smsg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DESC ── -->
+    <div class="deck-panel" id="panel-desc">
+      <div class="stack-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#34c759,#30d158);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">📝</div>
+          <div><div class="stack-title">2 &amp; 5 மார்க்</div><div class="stack-sub">Descriptive Questions</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-head">வகுப்பு · பாடம் · Term</div>
+        <div class="fc-body">
+          <div class="fl2">
+            <div><label class="flbl">வகுப்பு</label><select class="fsel" id="desc-class"></select></div>
+            <div><label class="flbl">பாடம்</label><select class="fsel" id="desc-subject" onchange="loadDescTopics()"></select></div>
+          </div>
+          <label class="flbl" style="margin-top:8px;">Term</label>
+          <div class="pill-row">
+            <button class="pill on" data-t="term1" onclick="selectDescTerm('term1')">Term 1</button>
+            <button class="pill" data-t="term2" onclick="selectDescTerm('term2')">Term 2</button>
+            <button class="pill" data-t="term3" onclick="selectDescTerm('term3')">Term 3</button>
+          </div>
+          <input type="hidden" id="desc-selected-term" value="term1">
+          <div class="sep"></div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input class="finp" id="desc-new-topic" placeholder="புதிய தலைப்பு…" style="flex:1;">
+            <button onclick="addDescTopic()" style="padding:10px 16px;border-radius:var(--r3);background:var(--grn);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">+</button>
+          </div>
+          <div id="desc-topics-list" style="display:flex;flex-wrap:wrap;min-height:24px;margin-bottom:8px;"></div>
+          <select class="fsel" id="desc-topic"></select>
+          <label class="flbl" style="margin-top:12px;">கேள்வி</label>
+          <textarea class="ftxt" id="desc-question" rows="3" placeholder="Question…"></textarea>
+          <label class="flbl" style="margin-top:8px;">விடை</label>
+          <textarea class="ftxt" id="desc-answer" rows="3" placeholder="Answer…"></textarea>
+          <button onclick="uploadDescQuestion()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r3);background:var(--ind);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Upload</button>
+          <div id="desc-status" class="smsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MANAGE (Card Stack) ── -->
+    <div class="deck-panel" id="panel-manage">
+      <div class="stack-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#ff9500,#ff6b00);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">✏️</div>
+          <div><div class="stack-title">நிர்வகி</div><div class="stack-sub" id="manage-card-count">Questions</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-body" style="padding:12px 16px;">
+          <div class="fl2">
+            <select class="fsel" id="manage-class"></select>
+            <select class="fsel" id="manage-subject"></select>
+          </div>
+          <div class="pill-row" style="margin-top:8px;">
+            <button class="pill on" onclick="filterManageByTerm('all')">All</button>
+            <button class="pill" onclick="filterManageByTerm('term1')">T1</button>
+            <button class="pill" onclick="filterManageByTerm('term2')">T2</button>
+            <button class="pill" onclick="filterManageByTerm('term3')">T3</button>
+            <button class="pill on" onclick="filterManageByType('mcq')" style="margin-left:6px;">MCQ</button>
+            <button class="pill" onclick="filterManageByType('desc')">Desc</button>
+          </div>
+          <select class="fsel" id="manage-topic" onchange="loadManageQuestions()" style="margin-top:8px;"><option value="all">All Topics</option></select>
+          <input class="finp" id="manage-search" placeholder="Search…" style="margin-top:8px;" oninput="filterManageList()">
+        </div>
+      </div>
+      <!-- Swipe hint -->
+      <div class="swipe-hint">
+        <span class="hint-arrow">←</span> நீக்கு
+        <span style="width:1px;height:12px;background:var(--border);"></span>
+        திருத்து <span class="hint-arrow">→</span>
+      </div>
+      <div id="manage-questions-list"></div>
+      <div id="manage-no-data" style="display:none;" class="empty-card">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">கேள்விகள் இல்லை</div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS ── -->
+    <div class="deck-panel" id="panel-analytics">
+      <div class="stack-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#007aff,#5ac8fa);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">📊</div>
+          <div><div class="stack-title">Analytics</div><div class="stack-sub">பகுப்பாய்வு</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-body">
+          <div class="fl2">
+            <select class="fsel" id="ana-class-filter"></select>
+            <select class="fsel" id="ana-subject-filter"></select>
+          </div>
+          <button onclick="loadAnalytics()" style="width:100%;margin-top:8px;padding:11px;border-radius:var(--r3);background:var(--ind);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Show Analytics</button>
+        </div>
+      </div>
+      <div class="ana-stat-row" id="ana-summary-cards"></div>
+      <div id="ana-score-dist" style="margin-bottom:10px;"></div>
+      <div id="ana-subject-bars" style="margin-bottom:10px;"></div>
+      <div id="ana-top-list"></div>
+      <div id="ana-loading" style="display:none;" class="loading"><div class="ldots"><span class="ldot"></span><span class="ldot"></span><span class="ldot"></span></div></div>
+      <div id="ana-empty" class="empty-card"><div class="empty-icon">📊</div><div class="empty-text">Filter → Show Analytics</div></div>
+    </div>
+
+    <!-- ── MARKS (Card Stack) ── -->
+    <div class="deck-panel" id="panel-marks">
+      <div class="stack-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#ff2d55,#ff6b81);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🏆</div>
+          <div><div class="stack-title">மார்க் List</div><div class="stack-sub">Student Scores</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-body">
+          <div class="fl2">
+            <select class="fsel" id="score-class-filter" onchange="loadScores()"></select>
+            <select class="fsel" id="score-subject-filter" onchange="loadScores()"></select>
+          </div>
+          <input class="finp" id="score-search" placeholder="Search by name…" style="margin-top:8px;" oninput="filterScoreList()">
+        </div>
+      </div>
+      <div id="scores-list" class="loading"><div class="ldots"><span class="ldot"></span><span class="ldot"></span><span class="ldot"></span></div></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <button class="nav-item on" onclick="switchTab('dash')">
+        <div class="nav-icon">⊞</div>
+        <span>Home</span>
+        <div class="nav-dot"></div>
+      </button>
+      <button class="nav-item" onclick="switchTab('mcq')">
+        <div class="nav-icon">＋</div>
+        <span>1 மார்க்</span>
+        <div class="nav-dot"></div>
+      </button>
+      <button class="nav-item" onclick="switchTab('desc')">
+        <div class="nav-icon">✎</div>
+        <span>2/5 மார்க்</span>
+        <div class="nav-dot"></div>
+      </button>
+      <button class="nav-item" onclick="switchTab('manage')">
+        <div class="nav-icon">⊟</div>
+        <span>நிர்வகி</span>
+        <div class="nav-dot"></div>
+      </button>
+      <button class="nav-item" onclick="switchTab('analytics')">
+        <div class="nav-icon">◎</div>
+        <span>Analytics</span>
+        <div class="nav-dot"></div>
+      </button>
+      <button class="nav-item" onclick="switchTab('marks')">
+        <div class="nav-icon">★</div>
+        <span>மார்க்</span>
+        <div class="nav-dot"></div>
+      </button>
+    </div>
+
+  </div><!-- deck-viewport -->
+</div><!-- #app -->
+
+<!-- Settings Sheet -->
+<div class="sheet-bg" id="settings-sheet" onclick="if(event.target===this)closeSheet('settings-sheet')">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head" style="background:linear-gradient(135deg,#5856d6,#af52de);border-radius:0;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="20260315_085358.png" style="width:30px;height:30px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,0.3);" onerror="this.style.display='none'">
+      <div class="sheet-title" style="color:#fff;">Settings</div>
+    </div>
+    <div class="sheet-close" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.2);color:#fff;" onclick="closeSheet('settings-sheet')">✕</div>
+  </div>
+  <div class="sheet-body">
+    <div class="srow">
+      <div class="srow-l"><div class="sico">🌙</div><div><div class="sname">Dark Mode</div><div class="ssub">இருண்ட பார்வை</div></div></div>
+      <label class="tog"><input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()"><span class="tog-sl"></span></label>
+    </div>
+    <div class="srow">
+      <div class="srow-l"><div class="sico" id="sound-icon">🔊</div><div><div class="sname">Sound</div><div class="ssub">ஒலி விளைவுகள்</div></div></div>
+      <label class="tog"><input type="checkbox" id="pref-sound" checked onchange="toggleSoundSetting(this.checked)"><span class="tog-sl"></span></label>
+    </div>
+    <div class="srow col">
+      <div class="srow-l"><div class="sico">🔤</div><div><div class="sname">Font Size</div><div class="ssub">எழுத்து அளவு</div></div></div>
+      <div class="font-row">
+        <button class="fbtn on" id="font-btn-normal" onclick="setFontPref('normal')">Normal</button>
+        <button class="fbtn" id="font-btn-large" onclick="setFontPref('large')">Large</button>
+      </div>
+    </div>
+    <div class="srow col">
+      <div class="srow-l"><div class="sico">🤖</div><div><div class="sname">AI API Key</div><div class="ssub">OpenRouter</div></div></div>
+      <div style="display:flex;gap:8px;">
+        <input class="finp" type="password" id="openrouter-key-input" placeholder="sk-or-v1-…" style="flex:1;font-size:12px;">
+        <button onclick="saveOpenRouterKey()" style="padding:10px 14px;border-radius:var(--r3);background:var(--ind);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;">Save</button>
+      </div>
+      <div style="font-size:11px;color:var(--text2);">openrouter.ai → Free → Keys</div>
+      <div id="api-key-status" style="font-size:11px;font-weight:600;display:none;"></div>
+    </div>
+    <div class="srow col" id="admin-danger-section" style="border:1.5px solid rgba(255,59,48,.2);display:none;">
+      <div class="srow-l"><div class="sico" style="background:var(--red-lt);">🗑</div><div><div class="sname" style="color:var(--red);">Admin</div><div class="ssub">All marks delete</div></div></div>
+      <button onclick="adminDeleteAllStudentScores()" style="width:100%;padding:11px;border-radius:var(--r3);background:var(--red);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">Delete All Student Marks</button>
+    </div>
+    <div style="text-align:center;padding:12px 0 4px;font-size:11px;color:var(--text3);font-weight:600;">உங்கள் ஆசிரியர் · v9.0 · Teacher Portal</div>
+  </div>
+</div>
+</div>
+
+<!-- Certificate Sheet -->
+<div class="sheet-bg" id="cert-sheet" onclick="if(event.target===this)closeSheet('cert-sheet')">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head" style="background:linear-gradient(135deg,#4f46e5,#7c3aed,#db2777);border-radius:0;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="20260315_085358.png" style="width:30px;height:30px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,0.3);" onerror="this.style.display='none'">
+      <div class="sheet-title" style="color:#fff;">🎓 Certificate</div>
+    </div>
+    <div class="sheet-close" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.2);color:#fff;" onclick="closeSheet('cert-sheet')">✕</div>
+  </div>
+  <div class="sheet-body">
+    <div class="cert-inner" id="cert-box">
+      <div class="cert-corner" style="top:0;left:0;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:0 0 54px 0;"></div>
+      <div class="cert-corner" style="top:0;right:0;background:linear-gradient(225deg,#db2777,#9333ea);border-radius:0 0 0 54px;"></div>
+      <div class="cert-corner" style="bottom:0;left:0;background:linear-gradient(45deg,#10b981,#059669);border-radius:0 54px 0 0;"></div>
+      <div class="cert-corner" style="bottom:0;right:0;background:linear-gradient(315deg,#f59e0b,#d97706);border-radius:54px 0 0 0;"></div>
+      <div class="cert-ghead">
+        <img src="20260315_085358.png" style="width:52px;height:52px;border-radius:14px;object-fit:cover;display:block;margin:0 auto 8px;box-shadow:0 3px 12px rgba(0,0,0,.3);" onerror="this.style.display='none'">
+        <div style="font-size:9px;letter-spacing:3px;font-weight:700;color:rgba(255,255,255,.6);">உங்கள் ஆசிரியர்</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;margin-top:3px;">சாதனை சான்றிதழ்</div>
+      </div>
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px;">இது சான்றளிக்கிறது</div>
+      <div id="cert-name" style="font-size:22px;font-weight:800;color:#4f46e5;margin-bottom:2px;"></div>
+      <div id="cert-class" style="font-size:12px;color:#6366f1;font-weight:700;margin-bottom:12px;"></div>
+      <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:12px;padding:11px;margin-bottom:10px;">
+        <div style="font-size:10px;color:#166534;font-weight:700;margin-bottom:3px;">SUBJECT</div>
+        <div id="cert-subject" style="font-size:15px;font-weight:800;color:#15803d;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:11px;"><div style="font-size:10px;color:#1e40af;font-weight:700;">SCORE</div><div id="cert-score" style="font-size:20px;font-weight:800;color:#1d4ed8;"></div></div>
+        <div style="background:#fff7ed;border:1.5px solid #fdba74;border-radius:10px;padding:11px;"><div style="font-size:10px;color:#9a3412;font-weight:700;">PERCENT</div><div id="cert-pct" style="font-size:20px;font-weight:800;color:#c2410c;"></div></div>
+      </div>
+      <div id="cert-grade-box" style="padding:11px;border-radius:12px;margin-bottom:10px;"></div>
+      <div style="border-top:1px dashed #e2e8f0;margin:10px 0;"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <div><div style="font-size:10px;color:#94a3b8;font-weight:600;">DATE</div><div id="cert-date" style="font-size:12px;font-weight:700;color:#475569;"></div></div>
+        <div style="font-size:9px;color:#94a3b8;">v9.0 · உங்கள் ஆசிரியர்</div>
+      </div>
+    </div>
+    <button onclick="printCertificate()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--r3);background:var(--grn);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">🖨 Print / Download</button>
+  </div>
+</div>
+</div>
+
+<!-- Popup -->
+<div id="popup-overlay" style="display:none;">
+  <div id="popup-box">
+    <div id="popup-icon"></div>
+    <div id="popup-title"></div>
+    <div id="popup-msg"></div>
+    <div class="pbrow" id="popup-btns"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// உங்கள் ஆசிரியர் v9.0 — Card Stack UI
+// ══════════════════════════════════════════════
+
+
+// ═══════════════════════════════════════════════
+// உங்கள் ஆசிரியர் v7.0 — Minimal Bento Grid UI
+// ═══════════════════════════════════════════════
+
+
+// ================================================================
+// உங்கள் ஆசிரியர் v5.0 - Primary Classes + Table Rank + Firebase Sync
+// ================================================================
+
+// 1 முதல் 5 ஆம் வகுப்பு வரை சூழ்நிலையியல் (EVS) சேர்க்கப்பட்டுள்ளது
+const subjects1to5 = ['தமிழ்', 'ஆங்கிலம்', 'கணிதம்', 'சூழ்நிலையியல்'];
+const subjects6to10 = ['தமிழ்', 'ஆங்கிலம்', 'கணிதம்', 'அறிவியல்', 'சமூக அறிவியல்'];
+const subjects11to12 = ['தமிழ்', 'ஆங்கிலம்', 'கணிதம்', 'இயற்பியல்', 'வேதியியல்', 'தாவரவியல்', 'விலங்கியல்', 'உயிரியல்', 'கணினி அறிவியல்', 'வரலாறு', 'பொருளியல்'];
+
+var subjectThemes = {
+    'தமிழ்': { icon: '📙', bg:'linear-gradient(135deg,#fff7ed,#ffedd5)', border:'#fb923c', nameColor:'#9a3412', subColor:'#c2410c', eng: 'Tamil' },
+    'ஆங்கிலம்': { icon: '📘', bg:'linear-gradient(135deg,#eff6ff,#dbeafe)', border:'#3b82f6', nameColor:'#1e3a8a', subColor:'#2563eb', eng: 'English' },
+    'கணிதம்': { icon: '📐', bg:'linear-gradient(135deg,#f0fdf4,#dcfce7)', border:'#22c55e', nameColor:'#14532d', subColor:'#16a34a', eng: 'Maths' },
+    'சூழ்நிலையியல்': { icon: '🌱', bg:'linear-gradient(135deg,#ecfccb,#d9f99d)', border:'#84cc16', nameColor:'#3f6212', subColor:'#4d7c0f', eng: 'EVS' },
+    'அறிவியல்': { icon: '🔬', bg:'linear-gradient(135deg,#fdf4ff,#fae8ff)', border:'#a855f7', nameColor:'#581c87', subColor:'#9333ea', eng: 'Science' },
+    'சமூக அறிவியல்': { icon: '🌍', bg:'linear-gradient(135deg,#f0fdfa,#ccfbf1)', border:'#14b8a6', nameColor:'#134e4a', subColor:'#0d9488', eng: 'Social Science' },
+    'இயற்பியல்': { icon: '⚡', bg:'linear-gradient(135deg,#e0f2fe,#bae6fd)', border:'#0ea5e9', nameColor:'#0369a1', subColor:'#0284c7', eng: 'Physics' },
+    'வேதியியல்': { icon: '🧪', bg:'linear-gradient(135deg,#fce7f3,#fbcfe8)', border:'#ec4899', nameColor:'#831843', subColor:'#be185d', eng: 'Chemistry' },
+    'தாவரவியல்': { icon: '🌿', bg:'linear-gradient(135deg,#dcfce7,#bbf7d0)', border:'#22c55e', nameColor:'#14532d', subColor:'#16a34a', eng: 'Botany' },
+    'விலங்கியல்': { icon: '🦁', bg:'linear-gradient(135deg,#ffedd5,#fed7aa)', border:'#f97316', nameColor:'#7c2d12', subColor:'#c2410c', eng: 'Zoology' },
+    'உயிரியல்': { icon: '🧬', bg:'linear-gradient(135deg,#f3e8ff,#e9d5ff)', border:'#a855f7', nameColor:'#4c1d95', subColor:'#7e22ce', eng: 'Biology' },
+    'கணினி அறிவியல்': { icon: '💻', bg:'linear-gradient(135deg,#e0e7ff,#c7d2fe)', border:'#6366f1', nameColor:'#312e81', subColor:'#4338ca', eng: 'Computer Science' },
+    'வரலாறு': { icon: '🏛️', bg:'linear-gradient(135deg,#fef3c7,#fde68a)', border:'#eab308', nameColor:'#713f12', subColor:'#a16207', eng: 'History' },
+    'பொருளியல்': { icon: '📊', bg:'linear-gradient(135deg,#ecfccb,#d9f99d)', border:'#84cc16', nameColor:'#3f6212', subColor:'#4d7c0f', eng: 'Economics' }
+};
+
+const teacherLogins = {
+    'admin': { pwd: 'admin123', name: 'முதன்மை ஆசிரியர்', subject: 'all' },
+    'tamil': { pwd: 'tamil123', name: 'தமிழ் ஆசிரியர்', subject: 'தமிழ்' },
+    'english': { pwd: 'eng123', name: 'ஆங்கில ஆசிரியர்', subject: 'ஆங்கிலம்' },
+    'maths': { pwd: 'maths123', name: 'கணித ஆசிரியர்', subject: 'கணிதம்' },
+    'evs': { pwd: 'evs123', name: 'சூழ்நிலையியல் ஆசிரியர்', subject: 'சூழ்நிலையியல்' },
+    'science': { pwd: 'sci123', name: 'அறிவியல் ஆசிரியர்', subject: 'அறிவியல்' },
+    'social': { pwd: 'soc123', name: 'சமூக அறிவியல் ஆசிரியர்', subject: 'சமூக அறிவியல்' },
+    'physics': { pwd: 'phy123', name: 'இயற்பியல் ஆசிரியர்', subject: 'இயற்பியல்' },
+    'chemistry': { pwd: 'chem123', name: 'வேதியியல் ஆசிரியர்', subject: 'வேதியியல்' },
+    'botany': { pwd: 'bot123', name: 'தாவரவியல் ஆசிரியர்', subject: 'தாவரவியல்' },
+    'zoology': { pwd: 'zoo123', name: 'விலங்கியல் ஆசிரியர்', subject: 'விலங்கியல்' },
+    'biology': { pwd: 'bio123', name: 'உயிரியல் ஆசிரியர்', subject: 'உயிரியல்' },
+    'cs': { pwd: 'cs123', name: 'கணினி ஆசிரியர்', subject: 'கணினி அறிவியல்' },
+    'history': { pwd: 'his123', name: 'வரலாறு ஆசிரியர்', subject: 'வரலாறு' },
+    'eco': { pwd: 'eco123', name: 'பொருளியல் ஆசிரியர்', subject: 'பொருளியல்' }
+};
+
+// ==================== CUSTOM POPUP SYSTEM ====================
+function showPopup(opts) {
+    const overlay = document.getElementById('popup-overlay');
+    document.getElementById('popup-icon').textContent = opts.icon || '💬';
+    document.getElementById('popup-title').textContent = opts.title || '';
+    document.getElementById('popup-msg').textContent = opts.msg || '';
+
+    const btns = document.getElementById('popup-btns');
+    btns.innerHTML = '';
+    overlay.style.display = 'flex';
+
+    if (opts.type === 'alert') {
+        const ok = document.createElement('button');
+        ok.className = 'popup-btn popup-btn-ok';
+        ok.textContent = opts.confirmText || '✓ சரி';
+        ok.onclick = () => { overlay.style.display = 'none'; if (opts.onConfirm) opts.onConfirm(); };
+        btns.appendChild(ok);
+    } else {
+        const cancel = document.createElement('button');
+        cancel.className = 'popup-btn popup-btn-cancel';
+        cancel.textContent = opts.cancelText || '✕ ரத்து';
+        cancel.onclick = () => { overlay.style.display = 'none'; };
+        const confirm = document.createElement('button');
+        confirm.className = opts.type === 'danger' ? 'popup-btn popup-btn-danger' : 'popup-btn popup-btn-confirm';
+        confirm.textContent = opts.confirmText || '✓ ஆம்';
+        confirm.onclick = () => { overlay.style.display = 'none'; if (opts.onConfirm) opts.onConfirm(); };
+        btns.appendChild(cancel);
+        btns.appendChild(confirm);
+    }
+}
+function popupAlert(msg, icon) { showPopup({ icon: icon||'ℹ️', title: 'தகவல்', msg: msg, type: 'alert' }); }
+function popupError(msg) { showPopup({ icon: '❌', title: 'பிழை', msg: msg, type: 'alert' }); }
+function popupSuccess(msg) { showPopup({ icon: '✅', title: 'வெற்றி!', msg: msg, type: 'alert' }); }
+function popupConfirm(title, msg, onConfirm, confirmText) { showPopup({ icon: '🗑️', title: title, msg: msg, type: 'confirm', onConfirm: onConfirm, confirmText: confirmText||'🗑 நீக்கு', cancelText: '✕ ரத்து' }); }
+function popupDanger(title, msg, onConfirm, confirmText) { showPopup({ icon: '⚠️', title: title, msg: msg, type: 'danger', onConfirm: onConfirm, confirmText: confirmText||'🗑 நீக்கு அனைத்தும்', cancelText: '✕ ரத்து' }); }
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyC8mlE5tzusC4X0nubnnpxL917JKxqTopk",
+    authDomain: "ungal-asiriyar-v4.firebaseapp.com",
+    projectId: "ungal-asiriyar-v4",
+    storageBucket: "ungal-asiriyar-v4.firebasestorage.app",
+    messagingSenderId: "871740932509",
+    appId: "1:871740932509:web:312b435c3191d75571ef74",
+    measurementId: "G-BZVBKPY0G0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+window.db = db;
+
+// State Variables
+window.currentStudent = null;
+window.currentTeacher = null;
+window.selectedDifficulty = 'all';
+window.selectedQCount = 10;
+window.selectedTopic = 'all';
+window.selectedTerm = 'term1';
+window._quizMode = 'training';
+window._pendingQuizType = 'mcq';
+window.soundEnabled = true;
+window.currentQuestions = [];
+window.currentQuestionIndex = 0;
+window.userAnswers = [];
+window.userScores = [];
+window._isExamMode = false;
+window.manageFilterTerm = 'all';
+window.manageFilterType = 'mcq';
+
+// localStorage Helpers
+function lsGet(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch(e) { return def; } }
+function lsSet(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+const K_DARK = 'ua_dark';
+const K_FONT = 'ua_font';
+const K_PREFS = 'ua_prefs';
+const K_TOPICS_MCQ = 'ua_topics_mcq';
+const K_TOPICS_DESC = 'ua_topics_desc';
+
+// Initialize Topics
+function initTopics() {
+    let mcqTopics = lsGet(K_TOPICS_MCQ, {});
+    let descTopics = lsGet(K_TOPICS_DESC, {});
+    
+    const defaultMcq = {
+        'தமிழ்': ['இலக்கணம்', 'இலக்கியம்', 'நன்னூல்', 'தொல்காப்பியம்'],
+        'ஆங்கிலம்': ['Grammar', 'Literature', 'Poetry', 'Prose'],
+        'கணிதம்': ['இயற்கணிதம்', 'வடிவியல்', 'எண்கணிதம்', 'புள்ளியியல்'],
+        'சூழ்நிலையியல்': ['சுகாதாரம்', 'சுற்றுச்சூழல்', 'விலங்குகள்'],
+        'அறிவியல்': ['இயற்பியல்', 'வேதியியல்', 'உயிரியல்', 'வானியல்'],
+        'சமூக அறிவியல்': ['வரலாறு', 'புவியியல்', 'குடியியல்', 'பொருளியல்'],
+        'இயற்பியல்': [], 'வேதியியல்': [], 'தாவரவியல்': [], 'விலங்கியல்': [], 'உயிரியல்': [], 'கணினி அறிவியல்': [], 'வரலாறு': [], 'பொருளியல்': []
+    };
+    
+    const defaultDesc = {
+        'தமிழ்': ['இலக்கண விளக்கம்', 'இலக்கிய விளக்கம்', 'சிறுகதை', 'கவிதை'],
+        'ஆங்கிலம்': ['Grammar Explanation', 'Literature Analysis', 'Essay Writing', 'Comprehension'],
+        'கணிதம்': ['கணக்கீடுகள்', 'விளக்கங்கள்', 'நிரூபணங்கள்', 'வரைபடங்கள்'],
+        'சூழ்நிலையியல்': ['விளக்கவுரைகள்', 'பயிற்சிகள்'],
+        'அறிவியல்': ['விளக்கவுரைகள்', 'சோதனைகள்', 'கோட்பாடுகள்', 'பயன்பாடுகள்'],
+        'சமூக அறிவியல்': ['விளக்கவுரைகள்', 'வரைபடம்', 'பகுப்பாய்வு', 'ஒப்பீடு'],
+        'இயற்பியல்': [], 'வேதியியல்': [], 'தாவரவியல்': [], 'விலங்கியல்': [], 'உயிரியல்': [], 'கணினி அறிவியல்': [], 'வரலாறு': [], 'பொருளியல்': []
+    };
+
+    if (Object.keys(mcqTopics).length === 0) { mcqTopics = defaultMcq; lsSet(K_TOPICS_MCQ, mcqTopics); }
+    if (Object.keys(descTopics).length === 0) { descTopics = defaultDesc; lsSet(K_TOPICS_DESC, descTopics); }
+    
+    Object.keys(defaultMcq).forEach(k => { if(!mcqTopics[k]) mcqTopics[k] = []; });
+    Object.keys(defaultDesc).forEach(k => { if(!descTopics[k]) descTopics[k] = []; });
+
+    return { mcq: mcqTopics, desc: descTopics };
+}
+
+// ==================== DYNAMIC SUBJECT DROPDOWNS & CARDS ====================
+function updateAdminSubjects(classId, subjectId, isFilter = false) {
+    const classVal = document.getElementById(classId).value;
+    const subSelect = document.getElementById(subjectId);
+    if (!subSelect) return;
+    
+    const prevVal = subSelect.value;
+    const isAllSubjectsAdmin = !window.currentTeacher || window.currentTeacher.subject === 'all';
+    subSelect.innerHTML = (isFilter && isAllSubjectsAdmin) ? '<option value="">அனைத்து பாடம்</option>' : '';
+    
+    let subjects = [];
+    if (['1', '2', '3', '4', '5'].includes(classVal)) subjects = subjects1to5;
+    else if (['11', '12'].includes(classVal)) subjects = subjects11to12;
+    else subjects = subjects6to10;
+    
+    if(!classVal && isFilter) subjects = [...new Set([...subjects1to5, ...subjects6to10, ...subjects11to12])]; 
+    if (!isAllSubjectsAdmin) subjects = [window.currentTeacher.subject];
+    
+    subjects.forEach(sub => {
+        const theme = subjectThemes[sub] || subjectThemes['தமிழ்'];
+        subSelect.innerHTML += `<option value="${sub}">${theme.icon} ${sub}</option>`;
+    });
+    
+    if(prevVal && subjects.includes(prevVal)) subSelect.value = prevVal;
+    else if (subjects.length > 0) subSelect.value = subjects[0];
+}
+
+function renderStudentSubjectCards() {
+    const grid = document.getElementById('subject-cards-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    const cls = window.currentStudent ? window.currentStudent.class : '';
+    let subjects = [];
+    if (['1', '2', '3', '4', '5'].includes(cls)) subjects = subjects1to5;
+    else if (['11', '12'].includes(cls)) subjects = subjects11to12;
+    else subjects = subjects6to10;
+    
+    subjects.forEach((sub, index) => {
+        const theme = subjectThemes[sub] || subjectThemes['தமிழ்'];
+        const isLastOdd = (subjects.length % 2 !== 0 && index === subjects.length - 1);
+        const gridCol = isLastOdd ? 'grid-column: 1 / -1;' : '';
+        
+        grid.innerHTML += `
+        <div class="subject-card" data-subject="${sub}" onclick="selectSubjectCard(this)" style="background:#f8fafc; border:2px solid #e2e8f0; border-radius:20px; padding:16px 12px; cursor:pointer; text-align:center; transition:all 0.2s; ${gridCol}">
+            <div style="font-size:2rem; margin-bottom:6px;">${theme.icon}</div>
+            <div class="sc-name" style="font-weight:900; font-size:14px; color:#1e293b;">${sub}</div>
+            <div class="sc-sub" style="font-size:10px; color:#64748b; font-weight:700;">${theme.eng}</div>
+        </div>`;
+    });
+    
+    const firstCard = grid.querySelector('.subject-card');
+    if (firstCard) selectSubjectCard(firstCard);
+}
+
+// ==================== TOPIC MANAGEMENT ====================
+function loadMcqTopics() {
+    const subject = document.getElementById('mcq-subject').value;
+    if(!subject) return;
+    const topics = initTopics();
+    const topicList = topics.mcq[subject] || [];
+    const topicSelect = document.getElementById('mcq-topic');
+    if (topicSelect) { topicSelect.innerHTML = '<option value="">📖 பாடத் தலைப்பு தேர்வு</option>'; topicList.forEach(t => topicSelect.innerHTML += `<option value="${t}">${t}</option>`); }
+    
+    const listDiv = document.getElementById('mcq-topics-list');
+    if (listDiv) {
+        listDiv.innerHTML = '';
+        if (topicList.length === 0) listDiv.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:10px;">பாடத் தலைப்புகள் இல்லை</p>';
+        else topicList.forEach((topic, idx) => listDiv.innerHTML += `<div class="topic-item"><div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="background:linear-gradient(135deg,#6366f1,#4f46e5); color:white; width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0;">${idx+1}</span><span style="font-weight:700; font-size:13px;">${topic}</span></div><button onclick="deleteMcqTopic('${subject}', '${topic}')" style="background:linear-gradient(135deg,#ef4444,#dc2626); width:auto; padding:4px 10px; margin:0; font-size:11px; box-shadow:0 2px 0 #b91c1c;">🗑</button></div>`);
+    }
+}
+function addMcqTopic() {
+    const subject = document.getElementById('mcq-subject').value; const newTopic = document.getElementById('mcq-new-topic').value.trim(); const statusEl = document.getElementById('mcq-status');
+    if (!newTopic) { statusEl.textContent = '❌ பாடத் தலைப்பை உள்ளிடவும்!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    const topics = initTopics(); if (!topics.mcq[subject]) topics.mcq[subject] = [];
+    if (topics.mcq[subject].includes(newTopic)) { statusEl.textContent = '❌ இந்த தலைப்பு ஏற்கனவே உள்ளது!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    topics.mcq[subject].push(newTopic); lsSet(K_TOPICS_MCQ, topics.mcq); document.getElementById('mcq-new-topic').value = '';
+    statusEl.textContent = `✅ "${newTopic}" சேர்க்கப்பட்டது!`; statusEl.className = 'smsg ok'; statusEl.style.display='block'; loadMcqTopics(); setTimeout(() => { statusEl.textContent = ''; }, 3000);
+}
+function deleteMcqTopic(subject, topic) { popupConfirm('பாடத் தலைப்பு நீக்கு', '"' + topic + '" ஐ நீக்க வேண்டுமா?', function() { var topics = initTopics(); if (topics.mcq[subject]) { topics.mcq[subject] = topics.mcq[subject].filter(function(t){ return t !== topic; }); lsSet(K_TOPICS_MCQ, topics.mcq); loadMcqTopics(); } }); }
+
+function loadDescTopics() {
+    const subject = document.getElementById('desc-subject').value;
+    if(!subject) return;
+    const topics = initTopics();
+    const topicList = topics.desc[subject] || [];
+    const topicSelect = document.getElementById('desc-topic');
+    if (topicSelect) { topicSelect.innerHTML = '<option value="">📖 பாடத் தலைப்பு தேர்வு</option>'; topicList.forEach(t => topicSelect.innerHTML += `<option value="${t}">${t}</option>`); }
+    const listDiv = document.getElementById('desc-topics-list');
+    if (listDiv) {
+        listDiv.innerHTML = '';
+        if (topicList.length === 0) listDiv.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:10px;">பாடத் தலைப்புகள் இல்லை</p>';
+        else topicList.forEach((topic, idx) => listDiv.innerHTML += `<div class="topic-item"><div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="background:linear-gradient(135deg,#10b981,#059669); color:white; width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0;">${idx+1}</span><span style="font-weight:700; font-size:13px;">${topic}</span></div><button onclick="deleteDescTopic('${subject}', '${topic}')" style="background:linear-gradient(135deg,#ef4444,#dc2626); width:auto; padding:4px 10px; margin:0; font-size:11px; box-shadow:0 2px 0 #b91c1c;">🗑</button></div>`);
+    }
+}
+function addDescTopic() {
+    const subject = document.getElementById('desc-subject').value; const newTopic = document.getElementById('desc-new-topic').value.trim(); const statusEl = document.getElementById('desc-status');
+    if (!newTopic) { statusEl.textContent = '❌ பாடத் தலைப்பை உள்ளிடவும்!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    const topics = initTopics(); if (!topics.desc[subject]) topics.desc[subject] = [];
+    if (topics.desc[subject].includes(newTopic)) { statusEl.textContent = '❌ இந்த தலைப்பு ஏற்கனவே உள்ளது!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    topics.desc[subject].push(newTopic); lsSet(K_TOPICS_DESC, topics.desc); document.getElementById('desc-new-topic').value = '';
+    statusEl.textContent = `✅ "${newTopic}" சேர்க்கப்பட்டது!`; statusEl.className = 'smsg ok'; statusEl.style.display='block'; loadDescTopics(); setTimeout(() => { statusEl.textContent = ''; }, 3000);
+}
+function deleteDescTopic(subject, topic) { popupConfirm('பாடத் தலைப்பு நீக்கு', '"' + topic + '" ஐ நீக்க வேண்டுமா?', function() { var topics = initTopics(); if (topics.desc[subject]) { topics.desc[subject] = topics.desc[subject].filter(function(t){ return t !== topic; }); lsSet(K_TOPICS_DESC, topics.desc); loadDescTopics(); } }); }
+
+// ==================== TERM SELECTION ====================
+function selectMcqTerm(term) { window.selectedTerm = term; document.querySelectorAll('#admin-mcq-section .term-btn').forEach(btn => btn.classList.remove('active')); const activeBtn = document.querySelector(`#admin-mcq-section .term-btn[data-term="${term}"]`); if (activeBtn) activeBtn.classList.add('active'); document.getElementById('mcq-selected-term').value = term; }
+function selectDescTerm(term) { document.querySelectorAll('#admin-desc-section .term-btn').forEach(btn => btn.classList.remove('active')); const activeBtn = document.querySelector(`#admin-desc-section .term-btn[data-term="${term}"]`); if (activeBtn) activeBtn.classList.add('active'); document.getElementById('desc-selected-term').value = term; }
+function selectStudentTerm(term) { window.selectedTerm = term; document.querySelectorAll('#subject-screen .term-btn').forEach(btn => { btn.classList.toggle('active', btn.getAttribute('data-term') === term); }); loadTopicsForStudent(); }
+function filterManageByTerm(term) { window.manageFilterTerm = term; document.querySelectorAll('#admin-manage-section .term-btn').forEach(btn => btn.classList.remove('active')); const activeBtn = document.querySelector(`#admin-manage-section .term-btn[onclick*="${term}"]`); if (activeBtn) activeBtn.classList.add('active'); loadManageQuestions(); }
+function filterManageByType(type) { window.manageFilterType = type; document.querySelectorAll('#admin-manage-section .type-btn').forEach(btn => btn.classList.remove('active')); const activeBtn = document.querySelector(`#admin-manage-section .type-btn[onclick*="${type}"]`); if (activeBtn) activeBtn.classList.add('active'); loadManageQuestions(); }
+
+// ==================== localStorage BACKUP HELPERS ====================
+const LS_QUESTIONS = 'ua_questions_cache';
+const LS_SCORES    = 'ua_scores_cache';
+function lsSaveQuestion(id, data) { try { const cache = lsGet(LS_QUESTIONS, {}); cache[id] = data; lsSet(LS_QUESTIONS, cache); } catch(e) {} }
+function lsDeleteQuestion(id) { try { const cache = lsGet(LS_QUESTIONS, {}); delete cache[id]; lsSet(LS_QUESTIONS, cache); } catch(e) {} }
+function lsGetQuestions() { return lsGet(LS_QUESTIONS, {}); }
+function lsSaveScore(data) { try { const scores = lsGet(LS_SCORES, []); scores.push({ ...data, lsId: Date.now() + Math.random() }); lsSet(LS_SCORES, scores); } catch(e) {} }
+function lsGetScores() { return lsGet(LS_SCORES, []); }
+
+function updateSingleAnswerSelect() {
+    const opts = [document.getElementById('single-opt1').value.trim(), document.getElementById('single-opt2').value.trim(), document.getElementById('single-opt3').value.trim(), document.getElementById('single-opt4').value.trim()];
+    const sel = document.getElementById('single-answer'); const prev = sel.value;
+    sel.innerHTML = '<option value="">✅ சரியான விடை தேர்வு</option>';
+    opts.forEach((opt, i) => { if (opt) { const o = document.createElement('option'); o.value = opt; o.textContent = ['A','B','C','D'][i] + '. ' + opt; sel.appendChild(o); } });
+    if (prev && opts.includes(prev)) sel.value = prev;
+}
+
+// ==================== UPLOAD FUNCTIONS ====================
+async function uploadMcqQuestions() {
+    const text = document.getElementById('simple-text').value.trim(); const classVal = document.getElementById('mcq-class').value;
+    const subject = document.getElementById('mcq-subject').value; const topic = document.getElementById('mcq-topic').value;
+    const term = document.getElementById('mcq-selected-term').value; const statusEl = document.getElementById('mcq-status');
+    if (!classVal || !subject || !topic || !term || !text) { statusEl.textContent = '❌ அனைத்து விவரங்களையும் நிரப்பவும்!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''); const questions = [];
+    for (let i = 0; i + 5 < lines.length; i += 6) {
+        const q = { question: lines[i], option1: lines[i+1], option2: lines[i+2], option3: lines[i+3], option4: lines[i+4], answer: lines[i+5], type: 'mcq', class: classVal, subject: subject, topic: topic, term: term, difficulty: 'medium', createdAt: new Date().toISOString() };
+        if (q.question && q.option1 && q.option2 && q.option3 && q.option4 && q.answer) questions.push(q);
+    }
+    if (questions.length === 0) { statusEl.textContent = '❌ சரியான வடிவத்தில் இல்லை!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    
+    statusEl.textContent = `⏳ ${questions.length} கேள்விகள் சேமிக்கப்படுகின்றன...`; statusEl.className = 'smsg'; statusEl.style.display='block';
+    try {
+        const BATCH_SIZE = 400; let saved = 0;
+        for (let start = 0; start < questions.length; start += BATCH_SIZE) {
+            const batch = db.batch(); const chunk = questions.slice(start, start + BATCH_SIZE);
+            chunk.forEach(q => { const ref = db.collection('questions').doc(); batch.set(ref, q); lsSaveQuestion(ref.id, q); saved++; });
+            await batch.commit();
+        }
+        statusEl.textContent = `✅ ${saved} கேள்விகள் சேமிக்கப்பட்டன!`; statusEl.className = 'smsg ok'; statusEl.style.display='block';
+        document.getElementById('simple-text').value = ''; setTimeout(() => { statusEl.textContent = ''; }, 4000); loadManageQuestions();
+    } catch (error) {
+        questions.forEach((q, i) => lsSaveQuestion('ls_' + Date.now() + '_' + i, q));
+        statusEl.textContent = `⚠️ LocalStorage-ல் சேமிக்கப்பட்டன.`; statusEl.className = 'smsg er'; statusEl.style.display='block';
+    }
+}
+
+async function uploadSingleMcq() {
+    const question = document.getElementById('single-question').value.trim(); const opt1 = document.getElementById('single-opt1').value.trim();
+    const opt2 = document.getElementById('single-opt2').value.trim(); const opt3 = document.getElementById('single-opt3').value.trim();
+    const opt4 = document.getElementById('single-opt4').value.trim(); const answer = document.getElementById('single-answer').value.trim();
+    const classVal = document.getElementById('mcq-class').value; const subject = document.getElementById('mcq-subject').value;
+    const topic = document.getElementById('mcq-topic').value; const term = document.getElementById('mcq-selected-term').value;
+    const statusEl = document.getElementById('single-mcq-status');
+
+    if (!classVal || !subject || !topic || !term || !question || !opt1 || !opt2 || !opt3 || !opt4 || !answer) { statusEl.textContent = '❌ அனைத்து விவரங்களையும் நிரப்பவும்!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    const qData = { question, option1: opt1, option2: opt2, option3: opt3, option4: opt4, answer, type: 'mcq', class: classVal, subject, topic, term, difficulty: 'medium', createdAt: new Date().toISOString() };
+    try {
+        const ref = await db.collection('questions').add(qData); lsSaveQuestion(ref.id, qData);
+        statusEl.textContent = '✅ கேள்வி சேர்க்கப்பட்டது!'; statusEl.className = 'smsg ok'; statusEl.style.display='block';
+        ['single-question','single-opt1','single-opt2','single-opt3','single-opt4'].forEach(id => document.getElementById(id).value = '');
+        updateSingleAnswerSelect(); setTimeout(() => { statusEl.textContent = ''; }, 3000); loadManageQuestions();
+    } catch (error) { lsSaveQuestion('ls_' + Date.now(), qData); statusEl.textContent = '⚠️ LocalStorage-ல் சேமிக்கப்பட்டது'; statusEl.className = 'smsg er'; statusEl.style.display='block'; }
+}
+
+async function uploadDescQuestion() {
+    const question = document.getElementById('desc-question').value.trim(); const answer = document.getElementById('desc-answer').value.trim();
+    const classVal = document.getElementById('desc-class').value; const subject = document.getElementById('desc-subject').value;
+    const topic = document.getElementById('desc-topic').value; const term = document.getElementById('desc-selected-term').value;
+    const statusEl = document.getElementById('desc-status');
+
+    if (!classVal || !subject || !topic || !term || !question || !answer) { statusEl.textContent = '❌ அனைத்து விவரங்களையும் நிரப்பவும்!'; statusEl.className = 'smsg er'; statusEl.style.display='block'; return; }
+    const qData = { question, answer, type: 'desc', class: classVal, subject, topic, term, difficulty: 'medium', createdAt: new Date().toISOString() };
+    try {
+        const ref = await db.collection('questions').add(qData); lsSaveQuestion(ref.id, qData);
+        statusEl.textContent = '✅ கேள்வி சேர்க்கப்பட்டது!'; statusEl.className = 'smsg ok'; statusEl.style.display='block';
+        document.getElementById('desc-question').value = ''; document.getElementById('desc-answer').value = '';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000); loadManageQuestions();
+    } catch (error) { lsSaveQuestion('ls_' + Date.now(), qData); statusEl.textContent = '⚠️ LocalStorage-ல் சேமிக்கப்பட்டது'; statusEl.className = 'smsg er'; statusEl.style.display='block'; }
+}
+
+// ==================== MANAGE QUESTIONS ====================
+async function loadManageQuestions() {
+    const classVal = document.getElementById('manage-class').value; const subject = document.getElementById('manage-subject').value;
+    const term = window.manageFilterTerm || 'all'; const type = window.manageFilterType || 'mcq';
+    const topicSel = document.getElementById('manage-topic'); const selTopic = topicSel ? topicSel.value : 'all';
+    const listEl = document.getElementById('manage-questions-list'); const noDataEl = document.getElementById('manage-no-data');
+
+    if (!classVal || !subject) { if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;"><div style="font-size:2rem;">👆</div><p style="font-weight:700;">வகுப்பு மற்றும் பாடம் தேர்வு செய்யவும்</p></div>'; if (noDataEl) noDataEl.style.display = 'none'; return; }
+    if (listEl) listEl.innerHTML = '<div class="loading">⏳ கேள்விகள் ஏற்றப்படுகின்றன...</div>';
+
+    try {
+        let query = db.collection('questions').where('class', '==', classVal).where('subject', '==', subject).where('type', '==', type);
+        const snapshot = await query.get(); let questions = []; snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+
+        Object.entries(lsGetQuestions()).forEach(([id, q]) => { if (q.class === classVal && q.subject === subject && q.type === type && !questions.find(fq => fq.id === id)) questions.push({ id, ...q, _fromLS: true }); });
+
+        if (term !== 'all') questions = questions.filter(q => q.term === term);
+        if (selTopic && selTopic !== 'all') questions = questions.filter(q => q.topic === selTopic);
+
+        const topicSet = new Set(questions.map(q => q.topic).filter(Boolean));
+        if (topicSel) {
+            const prev = topicSel.value; topicSel.innerHTML = '<option value="all">📖 அனைத்து பாடத் தலைப்புகள்</option>';
+            Array.from(topicSet).sort().forEach(t => topicSel.innerHTML += `<option value="${t}">${t}</option>`);
+            if (prev && topicSet.has(prev)) topicSel.value = prev;
+        }
+
+        if (questions.length === 0) { if (listEl) listEl.innerHTML = ''; if (noDataEl) noDataEl.style.display = 'block'; return; }
+        if (noDataEl) noDataEl.style.display = 'none';
+
+        questions.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        const termLabel = t => t === 'term1' ? 'Term-1' : t === 'term2' ? 'Term-2' : t === 'term3' ? 'Term-3' : t || '-';
+        let html = '<div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;"><span class="q-count-badge">📊 மொத்தம் ' + questions.length + ' கேள்விகள்</span></div>';
+
+        questions.forEach((q, idx) => {
+            const lsBadge = q._fromLS ? '<span style="background:#f59e0b;color:white;font-size:10px;padding:2px 6px;border-radius:8px;margin-left:6px;">LocalStorage</span>' : '';
+            if (type === 'mcq') {
+                const opts=[q.option1,q.option2,q.option3,q.option4].map((o,oi)=>o?`<span style="display:inline-flex;align-items:center;gap:3px;padding:4px 9px;background:${o===q.answer?'rgba(5,150,105,.1)':'var(--z800)'};border:1px solid ${o===q.answer?'rgba(5,150,105,.3)':'var(--z700)'};border-radius:6px;font-size:11px;color:${o===q.answer?'var(--em)':'var(--z400)'};font-weight:600;">${['A','B','C','D'][oi]} ${escapeHtml(o)}${o===q.answer?' ✓':''}</span>`:'').filter(Boolean).join('');
+                html += `<div class="qcard">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+                    <div style="flex:1;">
+                      <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+                        <span style="font-size:10px;font-weight:700;color:var(--ind);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:20px;white-space:nowrap;">#${idx+1} MCQ</span>
+                        ${lsBadge}
+                        <span style="font-size:10px;color:var(--z500);">📅 ${termLabel(q.term)}</span>
+                        <span style="font-size:10px;color:var(--z500);">📖 ${escapeHtml(q.topic||'')}</span>
+                      </div>
+                      <div style="font-size:13px;font-weight:600;color:var(--z100);line-height:1.5;margin-bottom:10px;">${escapeHtml(q.question)}</div>
+                      <div style="display:flex;flex-wrap:wrap;gap:5px;">${opts}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--z800);">
+                    <button onclick="editQuestion('${q.id}','mcq')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--z700);background:var(--z800);color:var(--z300);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;" onmouseover="this.style.borderColor='var(--ind)';this.style.color='var(--ind2)'" onmouseout="this.style.borderColor='var(--z700)';this.style.color='var(--z300)'">✏ திருத்து</button>
+                    <button onclick="deleteQuestion('${q.id}')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:var(--err);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;" onmouseover="this.style.background='rgba(220,38,38,.1)'" onmouseout="this.style.background='rgba(220,38,38,.05)'">🗑 நீக்கு</button>
+                  </div>
+                </div>`;
+            } else {
+                html += `<div class="qcard">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+                    <span style="font-size:10px;font-weight:700;color:var(--em);background:rgba(5,150,105,.1);padding:2px 8px;border-radius:20px;">#${idx+1} DESC</span>
+                    ${lsBadge}
+                    <span style="font-size:10px;color:var(--z500);">📅 ${termLabel(q.term)}</span>
+                    <span style="font-size:10px;color:var(--z500);">📖 ${escapeHtml(q.topic||'')}</span>
+                  </div>
+                  <div style="font-size:13px;font-weight:600;color:var(--z100);line-height:1.5;margin-bottom:10px;">${escapeHtml(q.question)}</div>
+                  <div style="background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2);border-radius:10px;padding:10px;font-size:12px;color:var(--em);font-weight:500;line-height:1.5;">${escapeHtml(q.answer||'')}</div>
+                  <div style="display:flex;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--z800);">
+                    <button onclick="editQuestion('${q.id}','desc')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--z700);background:var(--z800);color:var(--z300);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;" onmouseover="this.style.borderColor='var(--ind)';this.style.color='var(--ind2)'" onmouseout="this.style.borderColor='var(--z700)';this.style.color='var(--z300)'">✏ திருத்து</button>
+                    <button onclick="deleteQuestion('${q.id}')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:var(--err);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;" onmouseover="this.style.background='rgba(220,38,38,.1)'" onmouseout="this.style.background='rgba(220,38,38,.05)'">🗑 நீக்கு</button>
+                  </div>
+                </div>`;
+            }
+        });
+        if (listEl) listEl.innerHTML = html;
+    } catch (error) { if (listEl) listEl.innerHTML = '<div class="status-msg status-error">❌ பிழை: ' + error.message + '</div>'; }
+}
+
+function filterManageList() {
+    const searchTerm = document.getElementById('manage-search').value.toLowerCase();
+    document.querySelectorAll('#manage-questions-list .question-card').forEach(card => card.style.display = card.textContent.toLowerCase().includes(searchTerm) ? 'block' : 'none');
+}
+
+async function deleteQuestion(id) { popupConfirm('கேள்வி நீக்கு', 'இந்த கேள்வியை நிரந்தரமாக நீக்க வேண்டுமா?', async function() { try { await db.collection('questions').doc(id).delete(); lsDeleteQuestion(id); loadManageQuestions(); } catch (error) { lsDeleteQuestion(id); loadManageQuestions(); popupError('Firebase பிழை: ' + error.message); } }); }
+
+function deleteAllQuestions() {
+    const cls = document.getElementById('manage-class').value; const subject = document.getElementById('manage-subject').value; const type = window.manageFilterType; const term = window.manageFilterTerm;
+    popupDanger('அனைத்து கேள்விகளையும் நீக்கு ⚠️', 'மொத்த கேள்விகளும் நிரந்தரமாக நீக்கப்படும்!', async function() {
+        try {
+            let query = db.collection('questions').where('type', '==', type); if (cls) query = query.where('class', '==', cls); if (subject) query = query.where('subject', '==', subject); if (term !== 'all') query = query.where('term', '==', term);
+            const snap = await query.get(); if (snap.empty) { popupAlert('நீக்க கேள்விகள் இல்லை!', '📭'); return; }
+            const batch = db.batch(); snap.forEach(doc => batch.delete(doc.ref)); await batch.commit();
+            showPopup({ icon: '✅', title: 'நீக்கப்பட்டது!', msg: snap.size + ' கேள்விகள் நீக்கப்பட்டன.', type: 'alert', onConfirm: () => loadManageQuestions() });
+        } catch(e) { popupError('நீக்குவதில் பிழை: ' + e.message); }
+    }, '🗑️ ஆம், நீக்கு');
+}
+
+async function editQuestion(id, type) {
+    try {
+        const doc = await db.collection('questions').doc(id).get();
+        if (!doc.exists) { popupError('கேள்வி கிடைக்கவில்லை!'); return; }
+        const q = doc.data();
+        const isMcq = (type === 'mcq' || q.type === 'mcq');
+
+        const baseStyle = `width:100%;padding:12px 14px;background:#f8f8ff;border:2px solid #e0e0f0;border-radius:12px;font-size:14px;font-family:inherit;color:#1c1c1e;outline:none;transition:border-color .2s;margin:0;`;
+        const labelStyle = `font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;margin-top:12px;`;
+
+        let optionsHtml = '';
+        if (isMcq) {
+            const opts = [
+                {id:'edit-opt1', val:q.option1||'', ph:'Option A'},
+                {id:'edit-opt2', val:q.option2||'', ph:'Option B'},
+                {id:'edit-opt3', val:q.option3||'', ph:'Option C'},
+                {id:'edit-opt4', val:q.option4||'', ph:'Option D'},
+            ];
+            optionsHtml = `<label style="${labelStyle}">OPTIONS</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+                ${opts.map(o=>`<div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#5856d6,#af52de);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;">${o.ph.slice(-1)}</span>
+                    <input type="text" id="${o.id}" value="${escapeAttr(o.val)}" placeholder="${o.ph}" style="${baseStyle}padding-left:38px;" oninput="updateEditAnswerSelect()" onfocus="this.style.borderColor='#5856d6'" onblur="this.style.borderColor='#e0e0f0'">
+                </div>`).join('')}
+            </div>
+            <label style="${labelStyle}">CORRECT ANSWER</label>
+            <select id="edit-answer" style="${baseStyle}" onfocus="this.style.borderColor='#34c759'" onblur="this.style.borderColor='#e0e0f0'">
+                ${[q.option1,q.option2,q.option3,q.option4].filter(Boolean).map(o=>`<option value="${escapeAttr(o)}" ${q.answer===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}
+            </select>`;
+        } else {
+            optionsHtml = `<label style="${labelStyle}">ANSWER</label>
+            <textarea id="edit-answer" rows="4" style="${baseStyle}resize:vertical;" onfocus="this.style.borderColor='#5856d6'" onblur="this.style.borderColor='#e0e0f0'">${escapeHtml(q.answer||'')}</textarea>`;
+        }
+
+        const typeColor = isMcq ? 'linear-gradient(135deg,#5856d6,#af52de)' : 'linear-gradient(135deg,#34c759,#30d158)';
+        const typeLabel = isMcq ? 'MCQ' : 'DESC';
+
+        const modalHtml = `<div id="edit-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0;" onclick="if(event.target===this)document.getElementById('edit-modal-overlay').remove()">
+        <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;animation:slideUpEdit .3s cubic-bezier(.32,1.06,.5,1);">
+            <style>@keyframes slideUpEdit{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}</style>
+            <!-- Header -->
+            <div style="position:sticky;top:0;z-index:1;background:linear-gradient(135deg,#5856d6,#af52de);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:24px 24px 0 0;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.2rem;">✏️</span>
+                    <div>
+                        <div style="font-size:15px;font-weight:800;color:#fff;">கேள்வி திருத்தம்</div>
+                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.2);color:#fff;letter-spacing:.5px;">${typeLabel}</span>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('edit-modal-overlay').remove()" style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+            <!-- Body -->
+            <div style="padding:20px;">
+                <label style="${labelStyle}">QUESTION</label>
+                <textarea id="edit-question" rows="3" style="${baseStyle}resize:none;" onfocus="this.style.borderColor='#5856d6'" onblur="this.style.borderColor='#e0e0f0'">${escapeHtml(q.question||'')}</textarea>
+                ${optionsHtml}
+                <!-- Actions -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;">
+                    <button onclick="saveEditQuestion('${id}','${isMcq?'mcq':'desc'}')"
+                        style="padding:14px;border-radius:14px;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;box-shadow:0 4px 14px rgba(52,199,89,.3);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s;"
+                        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                        <span style="font-size:16px;">💾</span> சேமி
+                    </button>
+                    <button onclick="document.getElementById('edit-modal-overlay').remove()"
+                        style="padding:14px;border-radius:14px;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#ff3b30,#ff453a);color:#fff;box-shadow:0 4px 14px rgba(255,59,48,.3);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s;"
+                        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                        <span style="font-size:16px;">✕</span> ரத்து
+                    </button>
+                </div>
+                <div id="edit-status" style="margin-top:12px;font-size:13px;font-weight:700;text-align:center;border-radius:10px;padding:0;"></div>
+            </div>
+        </div>
+        </div>`;
+
+        const existing = document.getElementById('edit-modal-overlay');
+        if (existing) existing.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    } catch(e) { popupError('பிழை: ' + e.message); }
+}
+
+function updateEditAnswerSelect() {
+    const sel = document.getElementById('edit-answer');
+    if (!sel) return;
+    const opts = ['edit-opt1','edit-opt2','edit-opt3','edit-opt4'].map(id => {
+        const el = document.getElementById(id); return el ? el.value.trim() : '';
+    }).filter(Boolean);
+    const prev = sel.value;
+    sel.innerHTML = opts.map(o => `<option value="${escapeAttr(o)}" ${prev===o?'selected':''}>${escapeHtml(o)}</option>`).join('');
+}
+
+function escapeAttr(str) { return str ? str.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''; }
+function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;') : ''; }
+
+async function saveEditQuestion(id, type) {
+    const question = document.getElementById('edit-question').value.trim(); const answer = document.getElementById('edit-answer').value.trim();
+    const statusEl = document.getElementById('edit-status'); const updateData = { question, answer };
+    if (type === 'mcq') { updateData.option1 = document.getElementById('edit-opt1').value.trim(); updateData.option2 = document.getElementById('edit-opt2').value.trim(); updateData.option3 = document.getElementById('edit-opt3').value.trim(); updateData.option4 = document.getElementById('edit-opt4').value.trim(); }
+    try {
+        statusEl.textContent = '⏳ சேமிக்கப்படுகிறது...';
+        statusEl.style.cssText = 'color:#5856d6;background:rgba(88,86,214,.08);padding:10px;border-radius:10px;display:block;';
+        await db.collection('questions').doc(id).update(updateData);
+        statusEl.textContent = '✅ திருத்தப்பட்டது!';
+        statusEl.style.cssText = 'color:#34c759;background:rgba(52,199,89,.08);padding:10px;border-radius:10px;display:block;';
+        setTimeout(() => { const m=document.getElementById('edit-modal-overlay'); if(m)m.remove(); loadManageQuestions(); }, 900);
+    } catch(e) {
+        statusEl.textContent = '❌ பிழை: ' + e.message;
+        statusEl.style.cssText = 'color:#ff3b30;background:rgba(255,59,48,.08);padding:10px;border-radius:10px;display:block;';
+    }
+}
+
+// ==================== TOPICS FOR STUDENT ====================
+function selectSubjectCard(el) {
+    document.querySelectorAll('.subject-card').forEach(c => {
+        c.removeAttribute('data-active'); c.style.background = '#f8fafc'; c.style.border = '2px solid #e2e8f0'; c.style.transform = ''; c.style.boxShadow = '';
+        const n = c.querySelector('.sc-name'); const s = c.querySelector('.sc-sub'); if (n) n.style.color = '#1e293b'; if (s) s.style.color = '#64748b';
+    });
+    const subj = el.getAttribute('data-subject'); const theme = subjectThemes[subj] || subjectThemes['தமிழ்'];
+    el.setAttribute('data-active', 'true'); el.style.background = theme.bg; el.style.border = '3px solid ' + theme.border; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)';
+    const n = el.querySelector('.sc-name'); const s = el.querySelector('.sc-sub'); if (n) n.style.color = theme.nameColor; if (s) s.style.color = theme.subColor;
+    loadTopicsForStudent();
+}
+
+function getActiveSubject() { const active = document.querySelector('.subject-card[data-active="true"]'); return active ? active.getAttribute('data-subject') : 'தமிழ்'; }
+
+async function loadTopicsForStudent() {
+    const subject = getActiveSubject(); const cls = window.currentStudent ? window.currentStudent.class : ''; const term = window.selectedTerm || 'all';
+    const select = document.getElementById('student-topic-select'); if (!select) return;
+    select.innerHTML = '<option value="all">⏳ ஏற்றப்படுகிறது...</option>'; select.disabled = true;
+    try {
+        let query = db.collection('questions').where('subject', '==', subject); if (cls) query = query.where('class', '==', cls); if (term !== 'all') query = query.where('term', '==', term);
+        const snap = await query.get(); const topicSet = new Set(); snap.forEach(doc => { if (doc.data().topic) topicSet.add(doc.data().topic); });
+        Object.values(lsGetQuestions()).forEach(q => { if (q.subject === subject && (!cls || q.class === cls) && (term === 'all' || q.term === term)) { if (q.topic) topicSet.add(q.topic); } });
+        select.innerHTML = '<option value="all">📚 அனைத்து பாடங்களும்</option>'; Array.from(topicSet).sort().forEach(t => select.innerHTML += `<option value="${t}">📖 ${t}</option>`);
+        select.disabled = false; select.value = 'all'; window.selectedTopic = 'all';
+    } catch(e) { select.innerHTML = '<option value="all">📚 அனைத்து பாடங்களும்</option>'; select.disabled = false; window.selectedTopic = 'all'; }
+}
+
+// ==================== CERTIFICATE ====================
+function showCertificate() {
+    const student = window.currentStudent || { name: 'மாணவர்', class: '' }; const result = window._lastQuizResult || { correct: 0, total: 0, pct: 0 }; const subject = getActiveSubject();
+    
+    let sName = student.name && student.name !== 'undefined' && student.name !== 'null' ? student.name : localStorage.getItem('studentName') || 'பெயர் இல்லை';
+    let sClass = student.class && student.class !== 'undefined' && student.class !== 'null' ? student.class : localStorage.getItem('studentClass') || '-';
+
+    document.getElementById('cert-name').textContent = sName; document.getElementById('cert-class').textContent = sClass !== '-' ? sClass + ' ஆம் வகுப்பு' : ''; document.getElementById('cert-subject').textContent = subject; document.getElementById('cert-score').textContent = result.correct + ' / ' + result.total; document.getElementById('cert-pct').textContent = result.pct + '%'; document.getElementById('cert-date').textContent = new Date().toLocaleDateString('ta-IN');
+
+    let grade, gradeColor, gradeBg, gradeBorder;
+    if (result.pct >= 90) { grade = '🥇 A+ சிறந்த திறன்'; gradeColor = '#065f46'; gradeBg = 'linear-gradient(135deg,#d1fae5,#a7f3d0)'; gradeBorder = '#10b981'; } 
+    else if (result.pct >= 75) { grade = '🥈 A நல்ல திறன்'; gradeColor = '#1d4ed8'; gradeBg = 'linear-gradient(135deg,#dbeafe,#bfdbfe)'; gradeBorder = '#3b82f6'; } 
+    else if (result.pct >= 50) { grade = '🥉 B சராசரி திறன்'; gradeColor = '#92400e'; gradeBg = 'linear-gradient(135deg,#fef3c7,#fde68a)'; gradeBorder = '#f59e0b'; } 
+    else { grade = '📚 மேலும் பயிற்சி தேவை'; gradeColor = '#7f1d1d'; gradeBg = 'linear-gradient(135deg,#fee2e2,#fecaca)'; gradeBorder = '#ef4444'; }
+
+    const gradeBox = document.getElementById('cert-grade-box'); gradeBox.style.background = gradeBg; gradeBox.style.border = '1px solid ' + gradeBorder; gradeBox.innerHTML = `<div style="font-size:16px; font-weight:900; color:${gradeColor};">${grade}</div>`;
+    showScreen('certificate-screen');
+}
+
+function printCertificate() {
+    const certBox = document.getElementById('cert-box'); const w = window.open('', '_blank', 'width=600,height=800');
+    w.document.write('<html><head><meta charset="UTF-8"><title>Certificate</title><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"><style>body{font-family:Nunito,sans-serif;margin:20px;background:#fff;} @media print{body{margin:0;}}</style></head><body>' + certBox.outerHTML + '<script>window.onload=function(){window.print();}<\/script></body></html>'); w.document.close();
+}
+
+function closeCertificate() { showScreen('admin-screen'); }
+
+function selectStudentMode(mode) {
+    window._quizMode = mode; window._isExamMode = (mode === 'exam');
+    const trCard = document.getElementById('mode-card-training'); const exCard = document.getElementById('mode-card-exam');
+    if (mode === 'training') { trCard.style.border = '2px solid #6366f1'; trCard.style.background = 'linear-gradient(135deg,#eff6ff,#e0e7ff)'; trCard.querySelector('div:nth-child(2)').style.color = '#4f46e5'; exCard.style.border = '2px solid #e2e8f0'; exCard.style.background = '#f8fafc'; exCard.querySelector('div:nth-child(2)').style.color = '#475569'; } 
+    else { exCard.style.border = '2px solid #f59e0b'; exCard.style.background = 'linear-gradient(135deg,#fffbeb,#fef3c7)'; exCard.querySelector('div:nth-child(2)').style.color = '#d97706'; trCard.style.border = '2px solid #e2e8f0'; trCard.style.background = '#f8fafc'; trCard.querySelector('div:nth-child(2)').style.color = '#475569'; }
+}
+
+// ==================== QUIZ FUNCTIONS ====================
+function setQCount(n) { window.selectedQCount = n; document.querySelectorAll('.qcount-btn').forEach(btn => btn.style.background = '#94a3b8'); const el = document.querySelector(`.qcount-btn[onclick*="${n}"]`); if (el) el.style.background = '#f59e0b'; }
+function startQuiz(type) { window._pendingQuizType = type; window.selectedTopic = document.getElementById('student-topic-select')?.value || 'all'; window._isExamMode = (window._quizMode === 'exam'); loadQuestions(type); }
+
+async function loadQuestions(type) {
+    window._quizTopic = window.selectedTopic; window._quizTerm = window.selectedTerm; window._lastQuizSubject = getActiveSubject();
+    try {
+        let query = db.collection('questions').where('type', '==', type).where('class', '==', window.currentStudent.class).where('subject', '==', window._lastQuizSubject);
+        if (window._quizTerm && window._quizTerm !== 'all') query = query.where('term', '==', window._quizTerm);
+        if (window._quizTopic !== 'all') query = query.where('topic', '==', window._quizTopic);
+        const snapshot = window.selectedQCount > 0 ? await query.limit(window.selectedQCount).get() : await query.get(); const questions = []; snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+        if (questions.length === 0) { popupAlert('இந்த Term-ல் கேள்விகள் இல்லை! ஆசிரியரிடம் தெரிவிக்கவும்.', '📭'); return; }
+        window.currentQuestions = questions; window.currentQuestionIndex = 0; window.userAnswers = []; window.userScores = [];
+        if (type === 'mcq') { showMCQQuestion(); showScreen('quiz-screen'); } else { showDescQuestion(); showScreen('desc-quiz-screen'); }
+    } catch(e) { popupError('கேள்விகளை ஏற்றுவதில் பிழை!'); }
+}
+
+function showMCQQuestion() {
+    if (window.currentQuestionIndex >= window.currentQuestions.length) { finishMCQQuiz(); return; }
+    const q = window.currentQuestions[window.currentQuestionIndex];
+    document.getElementById('question-text').textContent = q.question; document.getElementById('quiz-qnum-badge').textContent = `${window.currentQuestionIndex + 1}/${window.currentQuestions.length}`; document.getElementById('mcq-progress').style.width = `${(window.currentQuestionIndex / window.currentQuestions.length) * 100}%`;
+    const opts = [q.option1, q.option2, q.option3, q.option4].filter(Boolean); for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+    const container = document.getElementById('options-container'); container.innerHTML = '';
+    opts.forEach((opt, i) => { const btn = document.createElement('button'); btn.className = 'option-btn'; btn.setAttribute('data-opt', opt); btn.innerHTML = `<span style="background:#e0e7ff;color:#4f46e5;width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-right:10px;">${['A', 'B', 'C', 'D'][i]}</span>${opt}`; btn.onclick = () => selectAnswer(opt, q.answer); container.appendChild(btn); });
+    if (window._isExamMode) startTimer(); document.getElementById('next-btn').classList.add('hidden');
+}
+
+let timerInterval;
+function startTimer() { if (timerInterval) clearInterval(timerInterval); let timeLeft = 30; const timerEl = document.getElementById('time-left'); timerEl.textContent = timeLeft; timerInterval = setInterval(() => { timeLeft--; timerEl.textContent = timeLeft; if (timeLeft <= 0) { clearInterval(timerInterval); selectAnswer(null, null); } }, 1000); }
+
+function selectAnswer(selected, correct) {
+    if (timerInterval) clearInterval(timerInterval); const isCorrect = selected === correct; window.userScores.push(isCorrect ? 1 : 0);
+    document.querySelectorAll('.option-btn').forEach(btn => { btn.disabled = true; if (btn.getAttribute('data-opt') === correct) btn.classList.add('correct'); else if (btn.getAttribute('data-opt') === selected && !isCorrect) btn.classList.add('wrong'); });
+    document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function nextQuestion() { window.currentQuestionIndex++; showMCQQuestion(); }
+
+async function finishMCQQuiz() {
+    const correct = window.userScores.filter(s => s === 1).length; const total = window.userScores.length; const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    document.getElementById('score-text').textContent = correct + ' / ' + total; document.getElementById('score-percent').textContent = pct + '% மதிப்பெண் பெற்றீர்கள்'; document.getElementById('feedback-msg').textContent = pct >= 80 ? '🎉 சிறப்பு!' : pct >= 50 ? '👍 நல்ல முயற்சி!' : '💪 தொடர்ந்து பயிற்சி செய்யுங்கள்!'; window._lastQuizResult = { correct, total, pct };
+
+    let sName = (window.currentStudent && window.currentStudent.name) ? window.currentStudent.name : localStorage.getItem('studentName');
+    let sClass = (window.currentStudent && window.currentStudent.class) ? window.currentStudent.class : localStorage.getItem('studentClass');
+    if(!sName || String(sName).trim() === 'undefined' || String(sName).trim() === 'null') sName = 'பெயர் இல்லை';
+    if(!sClass || String(sClass).trim() === 'undefined' || String(sClass).trim() === 'null') sClass = '-';
+
+    const scoreData = { name: sName, class: sClass, subject: window._lastQuizSubject || '-', term: window._quizTerm || 'all', topic: window._quizTopic || 'all', type: 'mcq', correct, total, pct, createdAt: new Date().toISOString(), date: new Date().toLocaleDateString('ta-IN') };
+
+    lsSaveScore(scoreData); try { await db.collection('scores').add(scoreData); } catch(e) { console.log('FB Err'); } showScreen('result-screen');
+}
+
+function showDescQuestion() {
+    if (window.currentQuestionIndex >= window.currentQuestions.length) { finishDescQuiz(); return; }
+    const q = window.currentQuestions[window.currentQuestionIndex]; document.getElementById('desc-question-text').textContent = q.question; document.getElementById('desc-answer-container').innerHTML = q.answer; document.getElementById('desc-answer-container').style.display = 'none'; document.getElementById('show-ans-btn').style.display = ''; document.getElementById('desc-next-btn').classList.add('hidden'); document.getElementById('desc-progress').style.width = `${(window.currentQuestionIndex / window.currentQuestions.length) * 100}%`;
+}
+
+function revealDescAnswer() { document.getElementById('desc-answer-container').style.display = 'block'; document.getElementById('show-ans-btn').style.display = 'none'; document.getElementById('desc-next-btn').classList.remove('hidden'); }
+function nextDescQuestion() { window.currentQuestionIndex++; showDescQuestion(); }
+
+async function finishDescQuiz() {
+    const total = window.currentQuestions.length; window._lastQuizResult = { correct: total, total, pct: 100 };
+    document.getElementById('score-text').textContent = total + ' கேள்விகள்'; document.getElementById('score-percent').textContent = 'அனைத்து கேள்விகளும் முடிந்தது!'; document.getElementById('feedback-msg').textContent = '📖 நல்ல முயற்சி!';
+
+    let sName = (window.currentStudent && window.currentStudent.name) ? window.currentStudent.name : localStorage.getItem('studentName');
+    let sClass = (window.currentStudent && window.currentStudent.class) ? window.currentStudent.class : localStorage.getItem('studentClass');
+    if(!sName || String(sName).trim() === 'undefined' || String(sName).trim() === 'null') sName = 'பெயர் இல்லை';
+    if(!sClass || String(sClass).trim() === 'undefined' || String(sClass).trim() === 'null') sClass = '-';
+
+    const scoreData = { name: sName, class: sClass, subject: window._lastQuizSubject || '-', term: window._quizTerm || 'all', topic: window._quizTopic || 'all', type: 'desc', correct: total, total, pct: 100, createdAt: new Date().toISOString(), date: new Date().toLocaleDateString('ta-IN') };
+    
+    lsSaveScore(scoreData); try { await db.collection('scores').add(scoreData); } catch(e) { console.log('FB Err'); } showScreen('result-screen');
+}
+
+// ==================== APP CONTROLS & NAV ====================
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    lsSet(K_DARK, isDark);
+    const cb = document.getElementById('dark-mode-toggle'); if(cb) cb.checked = isDark;
+}
+function applyDarkMode() {
+    const isDark = lsGet(K_DARK, false);
+    if (isDark) document.body.classList.add('dark-mode');
+    const cb = document.getElementById('dark-mode-toggle'); if(cb) cb.checked = isDark;
+}
+function toggleFontSize() { lsSet(K_FONT, document.body.classList.toggle('font-lg')); updateFontBtns(); }
+function updateFontBtns() {
+    const isLg = document.body.classList.contains('font-lg');
+    const nb = document.getElementById('font-btn-normal'); const lb = document.getElementById('font-btn-large');
+    if(nb) nb.classList.toggle('active', !isLg); if(lb) lb.classList.toggle('active', isLg);
+}
+function applyFontSize() { if (lsGet(K_FONT, false)) document.body.classList.add('font-lg'); updateFontBtns(); }
+function toggleSound() { window.soundEnabled = !window.soundEnabled; const cb=document.getElementById('pref-sound'); if(cb) cb.checked=window.soundEnabled; savePref('sound', window.soundEnabled); const si=document.getElementById('sound-icon'); if(si) si.textContent=window.soundEnabled?'🔊':'🔇'; }
+function toggleSoundSetting(val) { window.soundEnabled=val; savePref('sound',val); const si=document.getElementById('sound-icon'); if(si) si.textContent=val?'🔊':'🔇'; }
+function savePref(k, v) { const p = lsGet(K_PREFS, { sound: true }); p[k] = v; lsSet(K_PREFS, p); }
+function applyPrefs() {
+    window.soundEnabled = lsGet(K_PREFS, { sound: true }).sound !== false;
+    const cb=document.getElementById('pref-sound'); if(cb) cb.checked=window.soundEnabled;
+    const si=document.getElementById('sound-icon'); if(si) si.textContent=window.soundEnabled?'🔊':'🔇';
+}
+function setFontPref(s) { document.body.classList.toggle('font-lg', s==='large'); lsSet(K_FONT, s==='large'); updateFontBtns(); }
+
+function showScreen(id) {
+    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    if (id === 'app-settings-screen') {
+        updateFontBtns();
+        const dm=document.getElementById('dark-mode-toggle'); if(dm) dm.checked=document.body.classList.contains('dark-mode');
+        const ps=document.getElementById('pref-sound'); if(ps) ps.checked=window.soundEnabled;
+        const keyEl=document.getElementById('openrouter-key-input');
+        if(keyEl){ const saved=localStorage.getItem('ua_openrouter_key')||''; keyEl.value=saved; if(saved){ const st=document.getElementById('api-key-status'); if(st){st.style.display='block';st.style.color='#059669';st.textContent='✅ API Key சேமிக்கப்பட்டுள்ளது';}}}
+        const ds=document.getElementById('admin-danger-section');
+        if(ds) ds.style.display=(window.currentTeacher&&window.currentTeacher.username==='admin')?'flex':'none';
+    }
+}
+function goHome() { showScreen('role-screen'); }
+function adminLogout() { window.currentTeacher=null; goHome(); }
+function showSubjectScreen() { showScreen('subject-screen'); if (!document.querySelector('.subject-card[data-active="true"]')) { const first = document.querySelector('.subject-card'); if (first) selectSubjectCard(first); } loadTopicsForStudent(); }
+function studentLogout() { window.currentStudent = null; goHome(); }
+function adminLogout() { window.currentTeacher = null; goHome(); }
+
+// ==================== LOGIN ====================
+function verifyStudentLogin() {
+    const name = document.getElementById('student-name').value.trim(); const cls = document.getElementById('student-class').value;
+    if (!name || !cls) { popupAlert('பெயர் மற்றும் வகுப்பை உள்ளிடவும்!', '📝'); return; }
+    
+    window.currentStudent = { name: name, class: cls }; 
+    localStorage.setItem('studentName', name);
+    localStorage.setItem('studentClass', cls);
+    
+    document.getElementById('welcome-text').textContent = 'வணக்கம், ' + name + '!'; document.getElementById('student-class-badge').textContent = '🏫 ' + cls + ' ஆம் வகுப்பு';
+    renderStudentSubjectCards(); showSubjectScreen();
+}
+
+function checkAdminLogin() {
+    const savedUser = localStorage.getItem('ua_last_teacher_user') || '';
+    const userField = document.getElementById('teacher-username');
+    if(savedUser && userField) userField.value = savedUser;
+    showScreen('admin-login-screen');
+    setTimeout(() => {
+        const pwdField = document.getElementById('admin-password');
+        if(savedUser && pwdField) pwdField.focus(); else if(userField) userField.focus();
+    }, 100);
+}
+
+async function verifyTeacherLogin() {
+    const user = document.getElementById('teacher-username').value.trim().toLowerCase(); const pwd = document.getElementById('admin-password').value.trim();
+    const teacher = teacherLogins[user];
+    if (teacher && teacher.pwd === pwd) {
+        localStorage.setItem('ua_last_teacher_user', user);
+        window.currentTeacher = { username: user, name: teacher.name, subject: teacher.subject };
+        const headerTitle = document.getElementById('admin-header-title'); if (headerTitle) headerTitle.textContent = teacher.subject === 'all' ? '⚙️ முதன்மை ஆசிரியர்' : `⚙️ ${teacher.subject} ஆசிரியர்`;
+        showScreen('admin-screen'); loadAdminDashboard(); 
+        updateAdminSubjects('mcq-class', 'mcq-subject'); updateAdminSubjects('desc-class', 'desc-subject'); updateAdminSubjects('manage-class', 'manage-subject', true); updateAdminSubjects('ana-class-filter', 'ana-subject-filter', true); updateAdminSubjects('score-class-filter', 'score-subject-filter', true);
+        loadMcqTopics(); loadDescTopics(); document.getElementById('pwd-error').classList.add('hidden');
+    } else { document.getElementById('pwd-error').classList.remove('hidden'); }
+}
+
+async function loadAdminDashboard() { try { const qSnap = await db.collection('questions').get(); document.getElementById('dash-questions').textContent = qSnap.size; const sSnap = await db.collection('scores').get(); document.getElementById('dash-attempts').textContent = sSnap.size; const students = new Set(); sSnap.forEach(d => students.add(d.data().name)); document.getElementById('dash-students').textContent = students.size; } catch(e) {} }
+
+window.switchAdminTab = (tab) => {
+    ['dashboard','mcq','desc','manage','analytics','scores'].forEach(s => document.getElementById(`admin-${s}-section`).classList.add('hidden'));
+    document.getElementById(`admin-${tab}-section`).classList.remove('hidden');
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tab}'`)) btn.classList.add('active');
+    });
+    if(tab === 'manage') loadManageQuestions();
+    if(tab === 'scores') loadScores();
+};
+window.switchMcqTab = (tab) => {
+    const panels=['excel','ai','bulk','single'];
+    panels.forEach(p => {
+        const panel=document.getElementById('mcq-'+p+'-panel'); if(panel) panel.classList.toggle('hidden', p!==tab);
+        const btn=document.getElementById('mcq-tab-'+p);
+        if(btn){
+            const colors={excel:'linear-gradient(135deg,#10b981,#059669)',ai:'linear-gradient(135deg,#a855f7,#7c3aed)',bulk:'linear-gradient(135deg,#6366f1,#4f46e5)',single:'linear-gradient(135deg,#6366f1,#4f46e5)'};
+            btn.style.background = p===tab ? (colors[p]||'linear-gradient(135deg,#6366f1,#4f46e5)') : '#94a3b8';
+            btn.style.boxShadow = p===tab ? '' : 'none';
+        }
+    });
+};
+
+// ==================== ANALYTICS & SCORES ====================
+function getPct(s) { return s.pct !== undefined ? s.pct : (s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0); }
+
+async function getAllScores() {
+    let all = [];
+    try { const snap = await db.collection('scores').get(); snap.forEach(d => all.push({ _src: 'fb', id: d.id, ...d.data() })); } catch(e) {}
+    lsGetScores().forEach(s => { if (!all.find(a => a.name === s.name && a.class === s.class && a.subject === s.subject && a.createdAt === s.createdAt)) all.push({ _src: 'ls', ...s }); });
+    
+    all = all.map(s => {
+        let n = s.name; let c = s.class;
+        if(!n || String(n).trim() === 'undefined' || String(n).trim() === 'null' || String(n).trim() === '') n = 'பெயர் இல்லை';
+        if(!c || String(c).trim() === 'undefined' || String(c).trim() === 'null' || String(c).trim() === '') c = '-';
+        s.name = n; s.class = c;
+        if(!s.subject || String(s.subject).trim() === 'undefined') s.subject = '-';
+        return s;
+    });
+    
+    return all;
+}
+
+async function loadAnalytics() {
+    const cls = document.getElementById('ana-class-filter').value; const subj = document.getElementById('ana-subject-filter').value;
+    document.getElementById('ana-empty').style.display = 'none'; document.getElementById('ana-loading').style.display = 'block';
+    let allScores = await getAllScores();
+    if (cls) allScores = allScores.filter(s => (s.class || '') === cls); if (subj) allScores = allScores.filter(s => (s.subject || '') === subj);
+    document.getElementById('ana-loading').style.display = 'none';
+    if (allScores.length === 0) { ['ana-summary-cards','ana-score-dist','ana-subject-bars','ana-top-list'].forEach(id => document.getElementById(id).innerHTML = ''); document.getElementById('ana-empty').style.display = 'block'; return; }
+
+    const tAtt = allScores.length; const uSt = new Set(allScores.map(s => s.name || '?')).size; const aPct = Math.round(allScores.reduce((a, s) => a + getPct(s), 0) / tAtt);
+    document.getElementById('ana-summary-cards').innerHTML = `<div style="background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:18px;padding:14px;color:white;text-align:center;"><div style="font-size:1.8rem;">👨‍🎓</div><div style="font-size:26px;font-weight:900;">${uSt}</div><div style="font-size:11px;opacity:0.85;">மாணவர்கள்</div></div><div style="background:linear-gradient(135deg,#10b981,#059669);border-radius:18px;padding:14px;color:white;text-align:center;"><div style="font-size:1.8rem;">📝</div><div style="font-size:26px;font-weight:900;">${tAtt}</div><div style="font-size:11px;opacity:0.85;">மொத்த முயற்சிகள்</div></div><div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:18px;padding:14px;color:white;text-align:center;"><div style="font-size:1.8rem;">⭐</div><div style="font-size:26px;font-weight:900;">${aPct}%</div><div style="font-size:11px;opacity:0.85;">சராசரி மதிப்பெண்</div></div>`;
+
+    let distHtml = `<div style="background:#f8fafc;border-radius:20px;padding:16px;margin-bottom:14px;"><div style="font-weight:900;font-size:14px;color:#1e293b;margin-bottom:12px;">📊 மதிப்பெண் பகிர்வு</div>`;
+    [{l:'90-100%',min:90,max:100,c:'#10b981'},{l:'75-89%',min:75,max:89,c:'#6366f1'},{l:'50-74%',min:50,max:74,c:'#f59e0b'},{l:'0-49%',min:0,max:49,c:'#ef4444'}].forEach(r => { const c = allScores.filter(s => { const p = getPct(s); return p >= r.min && p <= r.max; }).length; const p = tAtt > 0 ? Math.round((c / tAtt) * 100) : 0; distHtml += `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;font-weight:700;color:#475569;">${r.l}</span><span style="font-size:12px;font-weight:900;color:${r.c};">${c} முயற்சி (${p}%)</span></div><div style="background:#e2e8f0;border-radius:20px;height:10px;"><div style="background:${r.c};width:${p}%;height:100%;border-radius:20px;"></div></div></div>`; });
+    document.getElementById('ana-score-dist').innerHTML = distHtml + '</div>';
+
+    const subMap = {}; allScores.forEach(s => { const su = s.subject || 'பிற'; if (!subMap[su]) subMap[su] = { c: 0, s: 0 }; subMap[su].c++; subMap[su].s += getPct(s); });
+    let sbHtml = `<div style="background:#f8fafc;border-radius:20px;padding:16px;margin-bottom:14px;"><div style="font-weight:900;font-size:14px;color:#1e293b;margin-bottom:12px;">📚 பாடம் வாரியான சராசரி</div>`;
+    Object.entries(subMap).sort((a,b) => (b[1].s/b[1].c) - (a[1].s/a[1].c)).forEach(([su, d]) => { const avg = Math.round(d.s / d.c); const col = subjectThemes[su] ? subjectThemes[su].border : '#6366f1'; sbHtml += `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;font-weight:700;color:#475569;">${su}</span><span style="font-size:13px;font-weight:900;color:${col};">${avg}%</span></div><div style="background:#e2e8f0;border-radius:20px;height:10px;"><div style="background:${col};width:${avg}%;height:100%;border-radius:20px;"></div></div></div>`; });
+    document.getElementById('ana-subject-bars').innerHTML = sbHtml + '</div>';
+
+    const sB = {}; allScores.forEach(s => { const nm = s.name || '?'; const p = getPct(s); if (!sB[nm] || p > sB[nm].p) sB[nm] = { p, cls: s.class, att: 0, tP: 0 }; sB[nm].att++; sB[nm].tP += p; });
+    const top = Object.entries(sB).sort((a,b) => b[1].p - a[1].p).slice(0, 5);
+    let topHtml = `<div style="background:#f8fafc;border-radius:20px;padding:16px;"><div style="font-weight:900;font-size:14px;color:#1e293b;margin-bottom:12px;">🏆 Top 5 மாணவர்கள்</div>`;
+    top.forEach(([nm, d], i) => { topHtml += `<div style="display:flex;align-items:center;gap:12px;background:white;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:8px;"><div style="font-size:1.8rem;">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</div><div style="flex:1;"><div style="font-weight:900;font-size:14px;">${nm}</div><div style="font-size:11px;color:#64748b;">${d.cls||'-'} வகுப்பு · ${d.att} முயற்சிகள்</div></div><div style="background:#6366f1;color:white;padding:6px 12px;border-radius:20px;font-weight:900;font-size:14px;">Best: ${d.p}%</div></div>`; });
+    document.getElementById('ana-top-list').innerHTML = topHtml + '</div>';
+}
+
+async function loadScores() {
+    const cls = document.getElementById('score-class-filter').value;
+    const subj = document.getElementById('score-subject-filter').value;
+    const listEl = document.getElementById('scores-list');
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#6366f1;font-weight:800;">⏳ ஏற்றப்படுகிறது...</div>';
+
+    let allScores = await getAllScores();
+    if (cls) allScores = allScores.filter(s => (s.class || '') === cls);
+    if (subj) allScores = allScores.filter(s => (s.subject || '') === subj);
+
+    if (allScores.length === 0) { listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><div style="font-size:3rem;">📭</div><p style="font-weight:700;">மதிப்பெண் பதிவுகள் இல்லை</p></div>'; return; }
+
+    allScores.sort((a, b) => {
+        const getT = s => { try { if(!s.createdAt) return 0; if(typeof s.createdAt==='string') return new Date(s.createdAt).getTime(); if(s.createdAt.seconds) return s.createdAt.seconds*1000; return 0; } catch(e){return 0;} };
+        return getT(b) - getT(a);
+    });
+    const isAdmin = window.currentTeacher && window.currentTeacher.username === 'admin';
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:12px;color:#64748b;font-weight:800;">🏅 மொத்தம் ${allScores.length} பதிவுகள்</span>
+        ${isAdmin ? `<button onclick="deleteAllScores()" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;padding:6px 14px;border-radius:12px;font-size:11px;font-weight:800;width:auto;margin:0;box-shadow:0 3px 0 #b91c1c;">🗑 அனைத்தும் நீக்கு</button>` : ''}
+    </div>
+    
+    <div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>பெயர்</th>
+                <th>வகுப்பு</th>
+                <th>பாடம்</th>
+                <th>மதிப்பெண்</th>
+                <th>%</th>
+                <th>தேதி / நேரம்</th>
+                ${isAdmin ? '<th>செயல்கள்</th>' : ''}
+            </tr>
+        </thead>
+        <tbody>`;
+    
+    allScores.forEach((s, i) => {
+        const rank = i + 1;
+        const pct = getPct(s);
+        
+        const safeName = String(s.name).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeClass = String(s.class).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeSubject = String(s.subject).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        const certData = encodeURIComponent(JSON.stringify({
+            name: s.name, class: s.class, subject: s.subject, correct: s.correct || 0, total: s.total || 0, pct: pct, date: s.date || new Date().toLocaleDateString('ta-IN')
+        }));
+
+        // Parse date/time from createdAt
+        let dateStr = s.date || '-', timeStr = '';
+        if (s.createdAt) {
+            try {
+                let d = null;
+                if (typeof s.createdAt === 'string') d = new Date(s.createdAt);
+                else if (s.createdAt && typeof s.createdAt === 'object') {
+                    if (typeof s.createdAt.toDate === 'function') d = s.createdAt.toDate();
+                    else if (s.createdAt.seconds) d = new Date(s.createdAt.seconds * 1000);
+                }
+                if (d && !isNaN(d.getTime())) {
+                    const dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'), yy=String(d.getFullYear()).slice(-2);
+                    dateStr = dd+'/'+mm+'/'+yy;
+                    let hh=d.getHours(), mn=String(d.getMinutes()).padStart(2,'0'), ap=hh>=12?'PM':'AM';
+                    hh=hh%12||12; timeStr=hh+':'+mn+' '+ap;
+                }
+            } catch(e){}
+        }
+        const pctColor = pct>=80?'#059669':pct>=50?'#d97706':'#dc2626';
+        const pctBg = pct>=80?'#d1fae5':pct>=50?'#fef3c7':'#fee2e2';
+        html += `<tr class="score-row">
+            <td style="font-weight:900; color:#4f46e5;">${rank}</td>
+            <td class="s-name" style="font-weight:800; text-align:left;">${safeName}</td>
+            <td>${safeClass}</td>
+            <td style="color:#64748b;">${safeSubject}</td>
+            <td style="font-weight:800;">${s.correct || 0}/${s.total || 0}</td>
+            <td><span style="background:${pctBg};color:${pctColor};padding:3px 8px;border-radius:10px;font-weight:900;font-size:12px;">${pct}%</span></td>
+            <td style="min-width:80px;"><div style="font-size:11px;font-weight:800;color:#475569;">${dateStr}</div>${timeStr?`<div class="time-badge">${timeStr}</div>`:''}</td>
+            ${isAdmin ? `
+            <td>
+                <div style="display:flex; gap:6px; justify-content:center;">
+                    <button onclick="adminGenerateCertificate('${certData}')" style="background:linear-gradient(135deg,#10b981,#059669); padding:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin:0; border-radius:10px; box-shadow:0 2px 0 #047857;" title="Certificate">🎓</button>
+                    <button onclick="adminDeleteScore('${s.id||''}', '${safeName}')" style="background:linear-gradient(135deg,#ef4444,#dc2626); padding:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin:0; border-radius:10px; box-shadow:0 2px 0 #b91c1c;" title="Delete">🗑</button>
+                </div>
+            </td>` : ''}
+        </tr>`;
+    });
+    
+    html += `</tbody></table></div>`;
+    listEl.innerHTML = html;
+}
+
+function filterScoreList() {
+    const term = document.getElementById('score-search').value.toLowerCase();
+    const rows = document.querySelectorAll('.score-row');
+    rows.forEach(row => {
+        const name = row.querySelector('.s-name').textContent.toLowerCase();
+        row.style.display = name.includes(term) ? '' : 'none';
+    });
+}
+
+function adminGenerateCertificate(encodedData) {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    
+    document.getElementById('cert-name').textContent = data.name;
+    document.getElementById('cert-class').textContent = data.class && data.class !== '-' ? data.class + ' ஆம் வகுப்பு' : '';
+    document.getElementById('cert-subject').textContent = data.subject;
+    document.getElementById('cert-score').textContent = data.correct + ' / ' + data.total;
+    document.getElementById('cert-pct').textContent = data.pct + '%';
+    document.getElementById('cert-date').textContent = data.date;
+
+    let grade, gradeColor, gradeBg, gradeBorder;
+    if (data.pct >= 90) { grade = '🥇 A+ சிறந்த திறன்'; gradeColor = '#065f46'; gradeBg = 'linear-gradient(135deg,#d1fae5,#a7f3d0)'; gradeBorder = '#10b981'; } 
+    else if (data.pct >= 75) { grade = '🥈 A நல்ல திறன்'; gradeColor = '#1d4ed8'; gradeBg = 'linear-gradient(135deg,#dbeafe,#bfdbfe)'; gradeBorder = '#3b82f6'; } 
+    else if (data.pct >= 50) { grade = '🥉 B சராசரி திறன்'; gradeColor = '#92400e'; gradeBg = 'linear-gradient(135deg,#fef3c7,#fde68a)'; gradeBorder = '#f59e0b'; } 
+    else { grade = '📚 மேலும் பயிற்சி தேவை'; gradeColor = '#7f1d1d'; gradeBg = 'linear-gradient(135deg,#fee2e2,#fecaca)'; gradeBorder = '#ef4444'; }
+
+    const gradeBox = document.getElementById('cert-grade-box');
+    gradeBox.style.background = gradeBg; gradeBox.style.border = '1px solid ' + gradeBorder;
+    gradeBox.innerHTML = `<div style="font-size:16px; font-weight:900; color:${gradeColor};">${grade}</div>`;
+    
+    showScreen('certificate-screen');
+}
+
+async function adminDeleteScore(id, name) {
+    if(!id) { popupError('LocalStorage தரவை தனித்தனியாக நீக்க முடியாது. "அனைத்தும் நீக்கு" பட்டனைப் பயன்படுத்தவும்.'); return; }
+    popupConfirm('பதிவை நீக்கு', `${name}-ன் இந்த மார்க் பதிவை நீக்க வேண்டுமா?`, async function() {
+        try { await db.collection('scores').doc(id).delete(); showPopup({ icon:'✅', title:'நீக்கப்பட்டது!', msg: 'பதிவு நீக்கப்பட்டது.', type:'alert', onConfirm: loadScores }); } catch(e) { popupError('பிழை: ' + e.message); }
+    });
+}
+
+async function deleteAllScores() {
+    popupDanger('⚠️ அனைத்தும் நீக்கு', 'Table-ல் உள்ள அனைத்து மார்க் தரவும் நீக்கப்படும்!', async function() {
+        const snap = await db.collection('scores').get(); if (!snap.empty) { const batch = db.batch(); snap.forEach(d => batch.delete(d.ref)); await batch.commit(); }
+        lsSet(LS_SCORES, []); showPopup({ icon:'✅', title:'நீக்கப்பட்டது!', msg:'அனைத்து மார்க் பட்டியலும் அழிக்கப்பட்டது.', type:'alert', onConfirm: loadScores });
+    });
+}
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', () => {
+    applyDarkMode(); applyFontSize(); applyPrefs(); initTopics();
+    
+    const classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+    ['mcq-class', 'desc-class', 'manage-class', 'ana-class-filter', 'score-class-filter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.innerHTML.includes('option')) { el.innerHTML = '<option value="">வகுப்பு தேர்வு</option>'; classes.forEach(c => el.innerHTML += `<option value="${c}">${c} ஆம் வகுப்பு</option>`); }
+    });
+
+    document.getElementById('mcq-class').addEventListener('change', () => { updateAdminSubjects('mcq-class', 'mcq-subject'); loadMcqTopics(); });
+    document.getElementById('desc-class').addEventListener('change', () => { updateAdminSubjects('desc-class', 'desc-subject'); loadDescTopics(); });
+    document.getElementById('manage-class').addEventListener('change', () => { updateAdminSubjects('manage-class', 'manage-subject', true); loadManageQuestions(); });
+    document.getElementById('ana-class-filter').addEventListener('change', () => { updateAdminSubjects('ana-class-filter', 'ana-subject-filter', true); loadAnalytics(); });
+    document.getElementById('score-class-filter').addEventListener('change', () => { updateAdminSubjects('score-class-filter', 'score-subject-filter', true); loadScores(); });
+    
+    updateAdminSubjects('mcq-class', 'mcq-subject');
+    updateAdminSubjects('desc-class', 'desc-subject');
+    updateAdminSubjects('manage-class', 'manage-subject', true);
+    updateAdminSubjects('ana-class-filter', 'ana-subject-filter', true);
+    updateAdminSubjects('score-class-filter', 'score-subject-filter', true);
+
+    document.getElementById('mcq-subject').addEventListener('change', loadMcqTopics);
+    document.getElementById('desc-subject').addEventListener('change', loadDescTopics);
+    document.getElementById('manage-subject').addEventListener('change', loadManageQuestions);
+    document.getElementById('manage-topic').addEventListener('change', loadManageQuestions);
+    
+    updateSingleAnswerSelect();
+    selectMcqTerm('term1');
+    selectDescTerm('term1');
+    filterManageByTerm('all');
+    filterManageByType('mcq');
+    window.switchMcqTab('excel');
+    
+    console.log('✅ உங்கள் ஆசிரியர் v5.0 — Teacher Portal loaded!');
+});
+
+// ==================== OPENROUTER API KEY ====================
+function saveOpenRouterKey() {
+    const key = document.getElementById('openrouter-key-input').value.trim();
+    const st = document.getElementById('api-key-status');
+    if(!key || key.length < 10) { st.style.display='block'; st.style.color='#dc2626'; st.textContent='❌ சரியான key உள்ளிடவும்!'; return; }
+    localStorage.setItem('ua_openrouter_key', key);
+    st.style.display='block'; st.style.color='#059669'; st.textContent='✅ API Key சேமிக்கப்பட்டது!';
+    setTimeout(() => { if(st) st.textContent=''; }, 3000);
+}
+
+async function adminDeleteAllStudentScores() {
+    popupDanger('⚠️ அனைத்தும் நீக்கு','அனைத்து மாணவர் மார்க் தரவும் நீக்கப்படும்!', async function() {
+        try {
+            const snap = await db.collection('scores').get();
+            if(!snap.empty){ const batch=db.batch(); snap.forEach(d=>batch.delete(d.ref)); await batch.commit(); }
+            lsSet(LS_SCORES,[]);
+            showPopup({icon:'✅',title:'நீக்கப்பட்டது!',msg:'அனைத்து மார்க் தரவும் அழிக்கப்பட்டது.',type:'alert',onConfirm:()=>{showScreen('admin-screen');loadAdminDashboard();}});
+        } catch(e){popupError('பிழை: '+e.message);}
+    },'🗑 அனைத்தும் நீக்கு');
+}
+
+const OR_FREE_MODELS=['google/gemma-3-27b-it:free','meta-llama/llama-3.1-8b-instruct:free','mistralai/mistral-7b-instruct:free','deepseek/deepseek-r1:free'];
+// _aiGeneratedQuestions init in core
+
+async function callOpenRouter(prompt, apiKey) {
+    for(const model of OR_FREE_MODELS){
+        try{
+            const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','HTTP-Referer':'https://ungal-asiriyar.app','X-Title':'Ungal Asiriyar'},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:3000,temperature:0.7})});
+            if(!res.ok) continue;
+            const data=await res.json();
+            const text=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
+            if(text) return {text,model};
+        }catch(e){console.warn(model,e.message);}
+    }
+    throw new Error('அனைத்து models தோல்வி. API key சரியாக உள்ளதா?');
+}
+
+async function generateAIQuestions() {
+    const topicInput=document.getElementById('ai-topic-input').value.trim();
+    const count=document.getElementById('ai-q-count').value;
+    const lang=document.getElementById('ai-language').value;
+    const classVal=document.getElementById('mcq-class').value;
+    const subject=document.getElementById('mcq-subject').value;
+    const statusEl=document.getElementById('ai-status');
+    const btn=document.getElementById('ai-generate-btn');
+    if(!topicInput){statusEl.textContent='❌ பாடத் தலைப்பை உள்ளிடவும்!';statusEl.className='status-msg status-error';return;}
+    if(!classVal||!subject){statusEl.textContent='❌ வகுப்பு மற்றும் பாடம் தேர்வு செய்யவும்!';statusEl.className='status-msg status-error';return;}
+    const apiKey=localStorage.getItem('ua_openrouter_key')||'';
+    if(!apiKey){statusEl.innerHTML='❌ API Key இல்லை! <a onclick="showScreen(&quot;app-settings-screen&quot;)" style="color:#6366f1;font-weight:900;cursor:pointer;text-decoration:underline;">⚙️ Settings-ல் சேர்க்கவும்</a>';statusEl.className='status-msg status-error';return;}
+    btn.disabled=true; btn.textContent='⏳ உருவாக்கப்படுகிறது...';
+    statusEl.textContent=`🤖 AI ${count} கேள்விகள் உருவாக்குகிறது...`;statusEl.className='status-msg';
+    document.getElementById('ai-preview').style.display='none';
+    const langInstr=lang==='tamil'?'All questions and options MUST be in Tamil script only.':lang==='english'?'All questions and options in English only.':'Mix Tamil and English.';
+    const prompt=`Create ${count} MCQ questions for Class ${classVal} ${subject}, Topic: "${topicInput}". ${langInstr}
+Return ONLY a JSON array, no markdown:
+[{"question":"...","option1":"...","option2":"...","option3":"...","option4":"...","answer":"exact correct option text"}]`;
+    try{
+        const {text,model}=await callOpenRouter(prompt,apiKey);
+        const clean=text.replace(/\`\`\`json|\`\`\`/g,'').trim();
+        const si=clean.indexOf('['),ei=clean.lastIndexOf(']');
+        if(si===-1||ei===-1) throw new Error('JSON கிடைக்கவில்லை');
+        const questions=JSON.parse(clean.substring(si,ei+1));
+        const valid=questions.filter(q=>q.question&&q.option1&&q.option2&&q.answer);
+        if(!valid.length) throw new Error('சரியான format இல்லை');
+        window._aiGeneratedQuestions=valid;
+        showAIPreview(valid);
+        statusEl.textContent=`✅ ${valid.length} கேள்விகள் உருவாக்கப்பட்டன! (${model.split('/')[1]})`;
+        statusEl.className='status-msg status-success';
+    }catch(err){statusEl.textContent='❌ பிழை: '+err.message;statusEl.className='status-msg status-error';}
+    btn.disabled=false; btn.textContent='✨ AI கேள்விகள் உருவாக்கு';
+}
+
+function showAIPreview(questions){
+    document.getElementById('ai-preview-count').textContent=`🤖 ${questions.length} கேள்விகள்:`;
+    let html='';
+    questions.forEach((q,i)=>{
+        html+=`<div style="background:white;border:1.5px solid #e9d5ff;border-radius:14px;padding:12px;margin-bottom:8px;"><div style="font-weight:900;font-size:13px;color:#1e293b;margin-bottom:8px;">${i+1}. ${q.question}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">${[q.option1,q.option2,q.option3,q.option4].map((o,j)=>`<div style="padding:4px 8px;border-radius:8px;font-weight:700;background:${o===q.answer?'#d1fae5':'#f8fafc'};color:${o===q.answer?'#059669':'#475569'};border:1px solid ${o===q.answer?'#6ee7b7':'#e2e8f0'};">${['A','B','C','D'][j]}. ${o} ${o===q.answer?'✓':''}</div>`).join('')}</div></div>`;
+    });
+    document.getElementById('ai-questions-list').innerHTML=html;
+    document.getElementById('ai-preview').style.display='block';
+}
+
+async function uploadAIQuestions(){
+    const questions=window._aiGeneratedQuestions||[];
+    const classVal=document.getElementById('mcq-class').value;
+    const subject=document.getElementById('mcq-subject').value;
+    const topic=document.getElementById('mcq-topic').value;
+    const term=document.getElementById('mcq-selected-term').value;
+    const statusEl=document.getElementById('ai-status');
+    if(!classVal||!subject||!topic||!term){statusEl.textContent='❌ வகுப்பு, பாடம், தலைப்பு, Term தேர்வு செய்யவும்!';statusEl.className='status-msg status-error';return;}
+    if(!questions.length){statusEl.textContent='❌ முதலில் AI Generate செய்யவும்!';statusEl.className='status-msg status-error';return;}
+    statusEl.textContent='⏳ சேமிக்கப்படுகிறது...';statusEl.className='status-msg';
+    try{
+        const batch=db.batch();
+        questions.forEach(q=>{const ref=db.collection('questions').doc();const data={...q,type:'mcq',class:classVal,subject,topic,term,difficulty:'medium',createdAt:new Date().toISOString()};batch.set(ref,data);lsSaveQuestion(ref.id,data);});
+        await batch.commit();
+        statusEl.textContent=`✅ ${questions.length} AI கேள்விகள் சேமிக்கப்பட்டன!`;statusEl.className='status-msg status-success';
+        document.getElementById('ai-preview').style.display='none';document.getElementById('ai-topic-input').value='';// _aiGeneratedQuestions init in core
+        setTimeout(()=>{statusEl.textContent='';},4000);loadManageQuestions();
+    }catch(err){statusEl.textContent='❌ பிழை: '+err.message;statusEl.className='status-msg status-error';}
+}
+
+// Excel template download
+function downloadExcelTemplate(){
+    try{
+        const wb=XLSX.utils.book_new();
+        const ws=XLSX.utils.aoa_to_sheet([['Question','Option A','Option B','Option C','Option D','Correct Answer'],['நிலா எந்த கோளை சுற்றுகிறது?','சூரியன்','பூமி','செவ்வாய்','வெள்ளி','பூமி'],['தமிழ்நாட்டின் தலைநகரம்?','மதுரை','கோயம்புத்தூர்','சென்னை','திருச்சி','சென்னை']]);
+        ws['!cols']=[{wch:40},{wch:20},{wch:20},{wch:20},{wch:20},{wch:20}];
+        XLSX.utils.book_append_sheet(wb,ws,'Questions');
+        try{
+            const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+            const blob=new Blob([new Uint8Array(wbout)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download='MCQ_Template.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),2000);
+        }catch(e1){
+            const b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
+            const a=document.createElement('a');a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'+b64;a.download='MCQ_Template.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);
+        }
+    }catch(e){popupAlert('CSV format: Question,OptionA,OptionB,OptionC,OptionD,Answer','⚠️');}
+}
+
+window._excelParsedQuestions=[];
+function handleExcelFile(input){
+    const file=input.files[0];if(!file)return;
+    document.getElementById('excel-file-name').textContent='📄 '+file.name;
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+        try{
+            const wb=XLSX.read(e.target.result,{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]];
+            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+            const firstCell=rows[0]?String(rows[0][0]||''):'';
+            const startRow=(firstCell.toLowerCase().includes('question')||firstCell.includes('கேள்வி'))?1:0;
+            const questions=[];
+            for(let i=startRow;i<rows.length;i++){
+                const r=rows[i];
+                const q=String(r[0]||'').trim(),o1=String(r[1]||'').trim(),o2=String(r[2]||'').trim(),o3=String(r[3]||'').trim(),o4=String(r[4]||'').trim(),ans=String(r[5]||'').trim();
+                if(q&&o1&&o2&&ans) questions.push({question:q,option1:o1,option2:o2,option3:o3,option4:o4,answer:ans});
+            }
+            window._excelParsedQuestions=questions;
+            showExcelPreview(questions);
+        }catch(err){document.getElementById('excel-status').textContent='❌ File படிக்க முடியவில்லை: '+err.message;document.getElementById('excel-status').className='status-msg status-error';}
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function showExcelPreview(questions){
+    const previewEl=document.getElementById('excel-preview');
+    if(!questions.length){document.getElementById('excel-status').textContent='❌ கேள்விகள் இல்லை!';document.getElementById('excel-status').className='status-msg status-error';previewEl.style.display='none';return;}
+    document.getElementById('excel-preview-count').textContent=`✅ ${questions.length} கேள்விகள் கண்டறியப்பட்டன`;
+    let html='<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#6366f1;color:white;"><th style="padding:8px;">#</th><th style="padding:8px;text-align:left;">கேள்வி</th><th style="padding:8px;text-align:left;">விடை</th></tr></thead><tbody>';
+    questions.slice(0,10).forEach((q,i)=>{html+=`<tr style="background:${i%2===0?'white':'#f8fafc'};border-bottom:1px solid #e2e8f0;"><td style="padding:6px 8px;font-weight:800;color:#6366f1;">${i+1}</td><td style="padding:6px 8px;font-weight:700;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.question}</td><td style="padding:6px 8px;color:#059669;font-weight:800;">${q.answer}</td></tr>`;});
+    if(questions.length>10) html+=`<tr><td colspan="3" style="padding:8px;text-align:center;color:#94a3b8;">... மற்றும் ${questions.length-10} கேள்விகள்</td></tr>`;
+    html+='</tbody></table>';
+    document.getElementById('excel-preview-table').innerHTML=html;
+    previewEl.style.display='block';
+}
+
+async function uploadExcelQuestions(){
+    const questions=window._excelParsedQuestions||[];
+    const classVal=document.getElementById('mcq-class').value,subject=document.getElementById('mcq-subject').value,topic=document.getElementById('mcq-topic').value,term=document.getElementById('mcq-selected-term').value;
+    const statusEl=document.getElementById('excel-status');
+    if(!classVal||!subject||!topic||!term){statusEl.textContent='❌ வகுப்பு, பாடம், தலைப்பு, Term தேர்வு செய்யவும்!';statusEl.className='status-msg status-error';return;}
+    if(!questions.length){statusEl.textContent='❌ முதலில் Excel file தேர்வு செய்யவும்!';statusEl.className='status-msg status-error';return;}
+    statusEl.textContent=`⏳ ${questions.length} கேள்விகள் சேமிக்கப்படுகின்றன...`;statusEl.className='status-msg';
+    try{
+        const BATCH_SIZE=400;let saved=0;
+        for(let start=0;start<questions.length;start+=BATCH_SIZE){
+            const batch=db.batch();
+            questions.slice(start,start+BATCH_SIZE).forEach(q=>{const ref=db.collection('questions').doc();const data={...q,type:'mcq',class:classVal,subject,topic,term,difficulty:'medium',createdAt:new Date().toISOString()};batch.set(ref,data);lsSaveQuestion(ref.id,data);saved++;});
+            await batch.commit();
+        }
+        statusEl.textContent=`✅ ${saved} கேள்விகள் சேமிக்கப்பட்டன!`;statusEl.className='status-msg status-success';
+        document.getElementById('excel-preview').style.display='none';document.getElementById('excel-file-name').textContent='';document.getElementById('excel-file-input').value='';window._excelParsedQuestions=[];
+        setTimeout(()=>{statusEl.textContent='';},4000);loadManageQuestions();
+    }catch(err){statusEl.textContent='❌ பிழை: '+err.message;statusEl.className='status-msg status-error';}
+}
+
+function previewBulkCount(){
+    const text=document.getElementById('simple-text').value.trim();
+    const badge=document.getElementById('bulk-count-badge');
+    if(!text){badge.style.display='none';return;}
+    const count=Math.floor(text.split('\n').map(l=>l.trim()).filter(l=>l!=='').length/6);
+    if(count>0){badge.textContent=count+' கேள்விகள்';badge.style.display='block';}else badge.style.display='none';
+}
+
+
+
+
+// ══════════════════════ v8 UI ══════════════════════
+
+// Sheet
+function openSheet(id){
+    const s=document.getElementById(id);if(!s)return;
+    s.classList.add('open');document.body.style.overflow='hidden';
+    if(id==='settings-sheet'){
+        updateFontBtns();
+        const dm=document.getElementById('dark-mode-toggle');
+        if(dm)dm.checked=document.body.classList.contains('dark-mode');
+        const ps=document.getElementById('pref-sound');if(ps)ps.checked=window.soundEnabled;
+        const k=document.getElementById('openrouter-key-input');
+        if(k){const v=localStorage.getItem('ua_openrouter_key')||'';k.value=v;
+            if(v){const st=document.getElementById('api-key-status');if(st){st.style.display='block';st.style.color='var(--grn)';st.textContent='✓ Key saved';}}}
+        const ds=document.getElementById('admin-danger-section');
+        if(ds)ds.style.display=(window.currentTeacher&&window.currentTeacher.username==='admin')?'flex':'none';
+    }
+}
+function closeSheet(id){const s=document.getElementById(id);if(!s)return;s.classList.remove('open');document.body.style.overflow='';}
+
+// showScreen compat
+function showScreen(id){
+    if(id==='certificate-screen')openSheet('cert-sheet');
+    else if(id==='app-settings-screen')openSheet('settings-sheet');
+    else if(id==='admin-screen')switchTab('dash');
+    else if(id==='role-screen'||id==='admin-login-screen')doLogout();
+}
+function goHome(){doLogout();}
+
+// Tab switch
+function switchTab(name){
+    document.querySelectorAll('.deck-panel').forEach(p=>p.classList.remove('on'));
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('on'));
+    const p=document.getElementById('panel-'+name);if(p)p.classList.add('on');
+    document.querySelectorAll('.nav-item').forEach(b=>{
+        if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+name+"'"))b.classList.add('on');
+    });
+    if(name==='manage')loadManageQuestions();
+    if(name==='marks')loadScores();
+    if(name==='dash')loadAdminDashboard();
+}
+window.switchAdminTab=(tab)=>switchTab(tab==='scores'?'marks':tab);
+
+// Login
+function doLogin(){
+    const user=document.getElementById('l-user').value.trim().toLowerCase();
+    const pwd=document.getElementById('l-pwd').value.trim();
+    const t=teacherLogins[user];
+    const err=document.getElementById('login-err');
+    if(t&&t.pwd===pwd){
+        err.classList.remove('show');
+        localStorage.setItem('ua_last_teacher_user',user);
+        window.currentTeacher={username:user,name:t.name,subject:t.subject};
+        document.getElementById('login-page').style.display='none';
+        document.getElementById('app').classList.add('on');
+        document.getElementById('topbar-user').textContent=t.name;
+        updateAdminSubjects('mcq-class','mcq-subject');
+        updateAdminSubjects('desc-class','desc-subject');
+        updateAdminSubjects('manage-class','manage-subject',true);
+        updateAdminSubjects('ana-class-filter','ana-subject-filter',true);
+        updateAdminSubjects('score-class-filter','score-subject-filter',true);
+        loadMcqTopics();loadDescTopics();loadAdminDashboard();loadScores();
+    }else err.classList.add('show');
+}
+function doAutoTeacherLogin(){
+    const u=localStorage.getItem('ua_last_teacher_user')||'';
+    if(!u||!teacherLogins[u])return;
+    document.getElementById('l-user').value=u;doLogin();
+}
+function doLogout(){
+    window.currentTeacher=null;
+    document.getElementById('app').classList.remove('on');
+    document.getElementById('login-page').style.display='flex';
+    document.getElementById('l-pwd').value='';
+    checkAutoBanner();
+}
+function adminLogout(){doLogout();}
+function checkAutoBanner(){
+    const u=localStorage.getItem('ua_last_teacher_user')||'';
+    const b=document.getElementById('auto-banner');
+    if(u&&teacherLogins[u]&&b){document.getElementById('auto-name').textContent=teacherLogins[u].name;b.classList.add('show');}
+    else if(b)b.classList.remove('show');
+}
+
+// Dark mode
+function toggleDarkMode(){const d=document.body.classList.toggle('dark-mode');lsSet(K_DARK,d);const cb=document.getElementById('dark-mode-toggle');if(cb)cb.checked=d;}
+function applyDarkMode(){const isDark=lsGet(K_DARK,false);if(isDark)document.body.classList.add('dark-mode');const cb=document.getElementById('dark-mode-toggle');if(cb)cb.checked=isDark;}
+
+// Cert
+function closeCertificate(){closeSheet('cert-sheet');}
+function adminGenerateCertificate(enc){
+    const d=JSON.parse(decodeURIComponent(enc));
+    document.getElementById('cert-name').textContent=d.name;
+    document.getElementById('cert-class').textContent=d.class&&d.class!=='-'?d.class+' ஆம் வகுப்பு':'';
+    document.getElementById('cert-subject').textContent=d.subject;
+    document.getElementById('cert-score').textContent=(d.correct||0)+' / '+(d.total||0);
+    document.getElementById('cert-pct').textContent=d.pct+'%';
+    document.getElementById('cert-date').textContent=d.date||new Date().toLocaleDateString('ta-IN');
+    let g,gc,gb,gbr;
+    if(d.pct>=90){g='🥇 A+ சிறந்த திறன்';gc='#065f46';gb='linear-gradient(135deg,#d1fae5,#a7f3d0)';gbr='#10b981';}
+    else if(d.pct>=75){g='🥈 A நல்ல திறன்';gc='#1d4ed8';gb='linear-gradient(135deg,#dbeafe,#bfdbfe)';gbr='#3b82f6';}
+    else if(d.pct>=50){g='🥉 B சராசரி திறன்';gc='#92400e';gb='linear-gradient(135deg,#fef3c7,#fde68a)';gbr='#f59e0b';}
+    else{g='📚 மேலும் பயிற்சி தேவை';gc='#7f1d1d';gb='linear-gradient(135deg,#fee2e2,#fecaca)';gbr='#ef4444';}
+    const gb2=document.getElementById('cert-grade-box');
+    gb2.style.background=gb;gb2.style.border='1.5px solid '+gbr;
+    gb2.innerHTML='<div style="font-size:14px;font-weight:800;color:'+gc+';">'+g+'</div>';
+    openSheet('cert-sheet');
+}
+
+// MCQ method tabs
+window.switchMcqTab=(tab)=>{
+    ['excel','ai','bulk','single'].forEach(p=>{
+        const el=document.getElementById('mcq-'+p+'-panel');if(el)el.classList.toggle('hidden',p!==tab);
+        const c=document.getElementById('mc-'+p);if(c)c.classList.toggle('on',p===tab);
+    });
+};
+
+// Term pills
+function selectMcqTerm(t){window.selectedTerm=t;document.querySelectorAll('#panel-mcq .pill[data-t]').forEach(p=>p.classList.toggle('on',p.dataset.t===t));document.getElementById('mcq-selected-term').value=t;}
+function selectDescTerm(t){document.querySelectorAll('#panel-desc .pill[data-t]').forEach(p=>p.classList.toggle('on',p.dataset.t===t));document.getElementById('desc-selected-term').value=t;}
+
+// FilterManage
+function filterManageByTerm(term){
+    window.manageFilterTerm=term;
+    document.querySelectorAll('#panel-manage .pill').forEach(p=>{
+        const oc=p.getAttribute('onclick')||'';
+        if(oc.includes('filterManageByTerm'))p.classList.toggle('on',oc.includes("'"+term+"'"));
+    });
+    loadManageQuestions();
+}
+function filterManageByType(type){
+    window.manageFilterType=type;
+    document.querySelectorAll('#panel-manage .pill').forEach(p=>{
+        const oc=p.getAttribute('onclick')||'';
+        if(oc.includes('filterManageByType'))p.classList.toggle('on',oc.includes("'"+type+"'"));
+    });
+    loadManageQuestions();
+}
+
+// Font
+function updateFontBtns(){const isLg=document.body.classList.contains('font-lg');const nb=document.getElementById('font-btn-normal');const lb=document.getElementById('font-btn-large');if(nb)nb.classList.toggle('on',!isLg);if(lb)lb.classList.toggle('on',isLg);}
+
+// Topic pill style v8
+function topicItemHtml(topic,idx,subject,type){
+    const fn=type==='mcq'?`deleteMcqTopic('${subject}','${topic}')`:`deleteDescTopic('${subject}','${topic}')`;
+    return `<div class="topic-pill"><span>${topic}</span><button onclick="${fn}">×</button></div>`;
+}
+
+// Status
+function showS(id,msg,ok){
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=msg;el.style.display='block';
+    el.className='smsg '+(ok?'ok':'er');
+    if(ok)setTimeout(()=>{el.style.display='none';},4000);
+}
+
+// ════ CARD STACK (TINDER SWIPE) for questions ════
+function initSwipeCard(el){
+    let startX=0,startY=0,dx=0,isDragging=false;
+    const onStart=(e)=>{
+        const t=e.touches?e.touches[0]:e;
+        startX=t.clientX;startY=t.clientY;isDragging=true;dx=0;
+        el.style.transition='none';
+    };
+    const onMove=(e)=>{
+        if(!isDragging)return;
+        const t=e.touches?e.touches[0]:e;
+        dx=t.clientX-startX;const dy=t.clientY-startY;
+        if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dx)<20)return; // vertical scroll
+        if(e.cancelable)e.preventDefault();
+        const rotate=dx*0.06;
+        el.style.transform=`translateX(${dx}px) rotate(${rotate}deg)`;
+        const threshold=60;
+        el.classList.toggle('show-edit',dx>threshold);
+        el.classList.toggle('show-del',dx<-threshold);
+    };
+    const onEnd=()=>{
+        if(!isDragging)return;
+        isDragging=false;
+        el.style.transition='transform .3s ease,opacity .3s ease';
+        if(dx>90){
+            // swipe right → edit
+            el.classList.add('swipe-right');
+            const id=el.dataset.id,type=el.dataset.type;
+            setTimeout(()=>editQuestion(id,type),200);
+        } else if(dx<-90){
+            // swipe left → delete
+            el.classList.add('swipe-left');
+            const id=el.dataset.id,name=el.dataset.name||'';
+            setTimeout(()=>deleteQuestion(id),200);
+        } else {
+            el.style.transform='';
+            el.classList.remove('show-edit','show-del');
+        }
+    };
+    el.addEventListener('mousedown',onStart);
+    el.addEventListener('touchstart',onStart,{passive:true});
+    window.addEventListener('mousemove',onMove);
+    el.addEventListener('touchmove',onMove,{passive:false});
+    window.addEventListener('mouseup',onEnd);
+    el.addEventListener('touchend',onEnd);
+}
+
+// Override loadManageQuestions question card render
+const _buildQ = (q,idx,type)=>{
+    const termLabel=t=>t==='term1'?'Term 1':t==='term2'?'Term 2':t==='term3'?'Term 3':t||'-';
+    const lsBadge=q._fromLS?'<span style="background:rgba(255,149,0,.15);color:var(--org);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;">Local</span>':'';
+    const typeBg=type==='mcq'?'linear-gradient(135deg,#5856d6,#af52de)':'linear-gradient(135deg,#34c759,#30d158)';
+    const typeLabel=type==='mcq'?'MCQ':'DESC';
+    let inner='';
+    if(type==='mcq'){
+        const opts=[q.option1,q.option2,q.option3,q.option4].map((o,oi)=>{
+            if(!o)return'';
+            const correct=o===q.answer;
+            const letters=['A','B','C','D'];
+            const letterBg=correct?'linear-gradient(135deg,#34c759,#30d158)':'var(--bg)';
+            const letterColor=correct?'#fff':'var(--text2)';
+            return`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:10px;background:${correct?'var(--grn-lt)':'var(--bg)'};border:1px solid ${correct?'rgba(52,199,89,.25)':'var(--border)'};margin-bottom:5px;"><span style="width:20px;height:20px;border-radius:6px;background:${letterBg};color:${letterColor};font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${letters[oi]}</span><span style="font-size:12px;font-weight:${correct?'700':'500'};color:${correct?'var(--grn)':'var(--text)'};flex:1;">${escapeHtml(o)}${correct?' <span style="float:right;font-size:11px;font-weight:700;">✓ Correct</span>':''}</span></div>`;
+        }).join('');
+        inner=`<div style="margin-bottom:8px;">${opts}</div>`;
+    } else {
+        inner=`<div style="background:var(--grn-lt);border:1px solid rgba(52,199,89,.2);border-radius:var(--r3);padding:12px;margin-bottom:10px;font-size:13px;color:var(--grn);font-weight:500;line-height:1.5;border-left:3px solid var(--grn);">${escapeHtml(q.answer||'')}</div>`;
+    }
+    return`<div class="scard" data-id="${q.id}" data-type="${type}" data-name="${escapeAttr(q.question||'')}">
+        <div class="scard-edit-stamp">✏ Edit</div>
+        <div class="scard-del-stamp">🗑 Delete</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="background:${typeBg};color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.5px;">${typeLabel}</span>
+            <span style="font-size:10px;font-weight:600;color:var(--text3);">#${idx+1}</span>
+            ${lsBadge}
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:10px;color:var(--text3);background:var(--bg);padding:2px 8px;border-radius:20px;">${termLabel(q.term)}</span>
+            <span style="font-size:10px;color:var(--text3);background:var(--bg);padding:2px 8px;border-radius:20px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(q.topic||'')}</span>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">${escapeHtml(q.question||'')}</div>
+        ${inner}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:4px;">
+          <button onclick="editQuestion('${q.id}','${type}')" style="padding:10px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#5856d6,#af52de);color:#fff;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(88,86,214,.25);transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <span style="font-size:14px;">✏</span> திருத்து
+          </button>
+          <button onclick="deleteQuestion('${q.id}')" style="padding:10px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#ff3b30,#ff453a);color:#fff;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(255,59,48,.25);transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <span style="font-size:14px;">🗑</span> நீக்கு
+          </button>
+        </div>
+    </div>`;
+};
+
+// Monkey-patch loadManageQuestions result rendering
+const _origLoadManage = window.loadManageQuestions;
+
+// ════ STATUS PATCH ════
+const patchStatus=(id,msg,cls)=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=msg;el.style.display='block';
+    if(cls.includes('success')||cls.includes('ok'))el.className='smsg ok';
+    else if(cls.includes('error')||cls.includes('err'))el.className='smsg er';
+    else el.className='smsg';
+};
+
+// Override mark scores rendering to use cards style
+const _origLoadScores_v8 = async function(){
+    const cls=document.getElementById('score-class-filter').value;
+    const subj=document.getElementById('score-subject-filter').value;
+    const listEl=document.getElementById('scores-list');
+    listEl.innerHTML='<div class="loading"><div class="ldots"><span class="ldot"></span><span class="ldot"></span><span class="ldot"></span></div></div>';
+    let allScores=await getAllScores();
+    if(cls)allScores=allScores.filter(s=>(s.class||'')===cls);
+    if(subj)allScores=allScores.filter(s=>(s.subject||'')===subj);
+    if(!allScores.length){listEl.innerHTML='<div class="empty-card"><div class="empty-icon">📭</div><div class="empty-text">மதிப்பெண் பதிவுகள் இல்லை</div></div>';return;}
+    allScores.sort((a,b)=>{
+        const gt=s=>{try{if(!s.createdAt)return 0;if(typeof s.createdAt==='string')return new Date(s.createdAt).getTime();if(s.createdAt.seconds)return s.createdAt.seconds*1000;return 0;}catch(e){return 0;}};
+        return gt(b)-gt(a);
+    });
+    const isAdmin=window.currentTeacher&&window.currentTeacher.username==='admin';
+    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 2px;">
+        <div class="count-badge">🏅 ${allScores.length} பதிவுகள்</div>
+        ${isAdmin?`<button onclick="deleteAllScores()" style="padding:7px 14px;border-radius:20px;background:var(--red-lt);color:var(--red);border:1px solid rgba(255,59,48,.2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑 அனைத்தும்</button>`:''}
+    </div>`;
+    allScores.forEach((s,i)=>{
+        const pct=getPct(s);
+        const pctCls=pct>=80?'pct-grn':pct>=50?'pct-org':'pct-red';
+        const safeName=String(s.name).replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        const safeClass=String(s.class).replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        const safeSubj=String(s.subject).replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        let dateStr='-',timeStr='';
+        if(s.createdAt){
+            let d=null;
+            if(typeof s.createdAt==='string')d=new Date(s.createdAt);
+            else if(s.createdAt&&typeof s.createdAt==='object'){if(typeof s.createdAt.toDate==='function')d=s.createdAt.toDate();else if(s.createdAt.seconds)d=new Date(s.createdAt.seconds*1000);}
+            if(d&&!isNaN(d.getTime())){const dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=String(d.getFullYear()).slice(-2);dateStr=dd+'/'+mm+'/'+yy;let hh=d.getHours(),mn=String(d.getMinutes()).padStart(2,'0'),ap=hh>=12?'PM':'AM';hh=hh%12||12;timeStr=hh+':'+mn+' '+ap;}
+        }else if(s.date)dateStr=s.date;
+        const certData=encodeURIComponent(JSON.stringify({name:s.name,class:s.class,subject:s.subject,correct:s.correct||0,total:s.total||0,pct,date:s.date||new Date().toLocaleDateString('ta-IN')}));
+        html+=`<div class="scard score-row" style="cursor:default;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:28px;height:28px;border-radius:8px;background:var(--ind-lt);color:var(--ind);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">${i+1}</span>
+                    <div><div class="sc-q s-name" style="margin:0;font-size:13px;">${safeName}</div><div style="font-size:11px;color:var(--text2);">${safeClass} · ${safeSubj}</div></div>
+                </div>
+                <span class="pct-badge ${pctCls}">${pct}%</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);">${s.correct||0} / ${s.total||0}</div>
+                    <div style="font-size:10px;color:var(--text2);">${dateStr}<span class="time-chip">${timeStr}</span></div>
+                </div>
+                ${isAdmin?`<div style="display:flex;gap:6px;">
+                    <button onclick="adminGenerateCertificate('${certData}')" style="padding:7px 12px;border-radius:10px;background:var(--grn-lt);color:var(--grn);border:1px solid rgba(52,199,89,.2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🎓</button>
+                    <button onclick="adminDeleteScore('${s.id||''}','${safeName}')" style="padding:7px 12px;border-radius:10px;background:var(--red-lt);color:var(--red);border:1px solid rgba(255,59,48,.2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑</button>
+                </div>`:''}
+            </div>
+        </div>`;
+    });
+    listEl.innerHTML=html;
+};
+window.loadScores=_origLoadScores_v8;
+
+// Question card swipe init after render
+const _origLoadManageQuestions=window.loadManageQuestions;
+async function loadManageQuestions(){
+    const classVal=document.getElementById('manage-class').value;
+    const subject=document.getElementById('manage-subject').value;
+    const term=window.manageFilterTerm||'all';const type=window.manageFilterType||'mcq';
+    const topicSel=document.getElementById('manage-topic');const selTopic=topicSel?topicSel.value:'all';
+    const listEl=document.getElementById('manage-questions-list');const noDataEl=document.getElementById('manage-no-data');
+    if(!classVal||!subject){if(listEl)listEl.innerHTML='<div class="empty-card"><div class="empty-icon">👆</div><div class="empty-text">வகுப்பு மற்றும் பாடம் தேர்வு செய்யவும்</div></div>';if(noDataEl)noDataEl.style.display='none';return;}
+    if(listEl)listEl.innerHTML='<div class="loading"><div class="ldots"><span class="ldot"></span><span class="ldot"></span><span class="ldot"></span></div></div>';
+    try{
+        let query=db.collection('questions').where('class','==',classVal).where('subject','==',subject).where('type','==',type);
+        const snapshot=await query.get();let questions=[];snapshot.forEach(doc=>questions.push({id:doc.id,...doc.data()}));
+        Object.entries(lsGetQuestions()).forEach(([id,q])=>{if(q.class===classVal&&q.subject===subject&&q.type===type&&!questions.find(fq=>fq.id===id))questions.push({id,...q,_fromLS:true});});
+        if(term!=='all')questions=questions.filter(q=>q.term===term);
+        if(selTopic&&selTopic!=='all')questions=questions.filter(q=>q.topic===selTopic);
+        const topicSet=new Set(questions.map(q=>q.topic).filter(Boolean));
+        if(topicSel){const prev=topicSel.value;topicSel.innerHTML='<option value="all">All Topics</option>';Array.from(topicSet).sort().forEach(t=>topicSel.innerHTML+=`<option value="${t}">${t}</option>`);if(prev&&topicSet.has(prev))topicSel.value=prev;}
+        if(!questions.length){if(listEl)listEl.innerHTML='';if(noDataEl)noDataEl.style.display='block';return;}
+        if(noDataEl)noDataEl.style.display='none';
+        questions.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+        const countEl=document.getElementById('manage-card-count');
+        if(countEl)countEl.textContent=questions.length+' questions';
+        if(listEl)listEl.innerHTML=questions.map((q,i)=>_buildQ(q,i,type)).join('');
+        // Init swipe on all cards
+        document.querySelectorAll('#manage-questions-list .scard').forEach(initSwipeCard);
+    }catch(err){if(listEl)listEl.innerHTML='<div class="empty-card"><div class="empty-icon">⚠️</div><div class="empty-text">'+err.message+'</div></div>';}
+}
+
+// Analytics stat cards v8 style
+const _origLoadAnalytics=window.loadAnalytics;
+async function loadAnalytics(){
+    const cls=document.getElementById('ana-class-filter').value;
+    const subj=document.getElementById('ana-subject-filter').value;
+    document.getElementById('ana-empty').style.display='none';
+    document.getElementById('ana-loading').style.display='block';
+    let allScores=await getAllScores();
+    if(cls)allScores=allScores.filter(s=>(s.class||'')===cls);
+    if(subj)allScores=allScores.filter(s=>(s.subject||'')===subj);
+    document.getElementById('ana-loading').style.display='none';
+    if(!allScores.length){['ana-summary-cards','ana-score-dist','ana-subject-bars','ana-top-list'].forEach(id=>document.getElementById(id).innerHTML='');document.getElementById('ana-empty').style.display='block';return;}
+    const tAtt=allScores.length,uSt=new Set(allScores.map(s=>s.name||'?')).size;
+    const aPct=Math.round(allScores.reduce((a,s)=>a+getPct(s),0)/tAtt);
+    document.getElementById('ana-summary-cards').innerHTML=
+        `<div class="ana-stat"><div class="ana-num" style="color:var(--ind);">${uSt}</div><div class="ana-lbl">மாணவர்கள்</div></div>
+         <div class="ana-stat"><div class="ana-num" style="color:var(--org);">${tAtt}</div><div class="ana-lbl">முயற்சிகள்</div></div>
+         <div class="ana-stat"><div class="ana-num" style="color:var(--grn);">${aPct}%</div><div class="ana-lbl">சராசரி</div></div>`;
+    let distHtml='<div class="form-card" style="margin-bottom:10px;"><div class="fc-head">📊 Score Distribution</div><div class="fc-body">';
+    [{l:'90–100%',min:90,max:100,c:'var(--grn)'},{l:'75–89%',min:75,max:89,c:'var(--ind)'},{l:'50–74%',min:50,max:74,c:'var(--org)'},{l:'0–49%',min:0,max:49,c:'var(--red)'}].forEach(r=>{
+        const c=allScores.filter(s=>{const p=getPct(s);return p>=r.min&&p<=r.max;}).length;
+        const p=tAtt>0?Math.round((c/tAtt)*100):0;
+        distHtml+=`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;font-weight:600;color:var(--text2);">${r.l}</span><span style="font-size:12px;font-weight:700;color:${r.c};">${c} (${p}%)</span></div><div style="background:var(--bg);border-radius:20px;height:8px;"><div style="background:${r.c};width:${p}%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>`;
+    });
+    document.getElementById('ana-score-dist').innerHTML=distHtml+'</div></div>';
+    const subMap={};allScores.forEach(s=>{const su=s.subject||'பிற';if(!subMap[su])subMap[su]={c:0,s:0};subMap[su].c++;subMap[su].s+=getPct(s);});
+    let sbHtml='<div class="form-card" style="margin-bottom:10px;"><div class="fc-head">📚 Subject Avg</div><div class="fc-body">';
+    Object.entries(subMap).sort((a,b)=>(b[1].s/b[1].c)-(a[1].s/a[1].c)).forEach(([su,d])=>{const avg=Math.round(d.s/d.c);const col=subjectThemes[su]?subjectThemes[su].border:'var(--ind)';sbHtml+=`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;font-weight:600;color:var(--text2);">${su}</span><span style="font-size:13px;font-weight:800;color:${col};">${avg}%</span></div><div style="background:var(--bg);border-radius:20px;height:8px;"><div style="background:${col};width:${avg}%;height:100%;border-radius:20px;"></div></div></div>`;});
+    document.getElementById('ana-subject-bars').innerHTML=sbHtml+'</div></div>';
+    const sB={};allScores.forEach(s=>{const nm=s.name||'?';const p=getPct(s);if(!sB[nm]||p>sB[nm].p)sB[nm]={p,cls:s.class,att:0,tP:0};sB[nm].att++;sB[nm].tP+=p;});
+    const top=Object.entries(sB).sort((a,b)=>b[1].p-a[1].p).slice(0,5);
+    let topHtml='<div class="form-card"><div class="fc-head">🏆 Top 5</div><div class="fc-body">';
+    top.forEach(([nm,d],i)=>{topHtml+=`<div class="scard" style="cursor:default;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.5rem;">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;">${nm}</div><div style="font-size:11px;color:var(--text2);">${d.cls||'-'} · ${d.att} tries</div></div><span class="pct-badge pct-grn">${d.p}%</span></div></div>`;});
+    document.getElementById('ana-top-list').innerHTML=topHtml+'</div></div>';
+}
+window.loadAnalytics=loadAnalytics;
+
+// Patch saveOpenRouterKey
+function saveOpenRouterKey(){
+    const key=document.getElementById('openrouter-key-input').value.trim();
+    const st=document.getElementById('api-key-status');
+    if(!key||key.length<10){st.style.display='block';st.style.color='var(--red)';st.textContent='❌ Valid key இல்லை';return;}
+    localStorage.setItem('ua_openrouter_key',key);
+    st.style.display='block';st.style.color='var(--grn)';st.textContent='✅ Saved!';
+    setTimeout(()=>{st.textContent='';},3000);
+}
+
+function adminDeleteAllStudentScores(){
+    popupDanger('⚠️ அனைத்தும் நீக்கு','அனைத்து மாணவர் மார்க் நீக்கப்படும்!',async function(){
+        try{const snap=await db.collection('scores').get();if(!snap.empty){const batch=db.batch();snap.forEach(d=>batch.delete(d.ref));await batch.commit();}lsSet(LS_SCORES,[]);showPopup({icon:'✅',title:'நீக்கப்பட்டது!',msg:'அனைத்தும் அழிக்கப்பட்டது.',type:'alert',onConfirm:()=>{switchTab('dash');loadAdminDashboard();}});}
+        catch(e){popupError('பிழை: '+e.message);}
+    },'🗑 நீக்கு');
+}
+
+// DOMContentLoaded
+document.addEventListener('DOMContentLoaded',()=>{
+    applyDarkMode();applyFontSize();applyPrefs();initTopics();
+    updateFontBtns();checkAutoBanner();
+    const classes=['1','2','3','4','5','6','7','8','9','10','11','12'];
+    ['mcq-class','desc-class','manage-class','ana-class-filter','score-class-filter'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el&&!el.innerHTML.includes('option')){el.innerHTML='<option value="">வகுப்பு</option>';classes.forEach(c=>el.innerHTML+=`<option value="${c}">${c} ஆம்</option>`);}
+    });
+    document.getElementById('mcq-class').addEventListener('change',()=>{updateAdminSubjects('mcq-class','mcq-subject');loadMcqTopics();});
+    document.getElementById('desc-class').addEventListener('change',()=>{updateAdminSubjects('desc-class','desc-subject');loadDescTopics();});
+    document.getElementById('manage-class').addEventListener('change',()=>{updateAdminSubjects('manage-class','manage-subject',true);loadManageQuestions();});
+    document.getElementById('ana-class-filter').addEventListener('change',()=>{updateAdminSubjects('ana-class-filter','ana-subject-filter',true);loadAnalytics();});
+    document.getElementById('score-class-filter').addEventListener('change',()=>{updateAdminSubjects('score-class-filter','score-subject-filter',true);loadScores();});
+    updateAdminSubjects('mcq-class','mcq-subject');updateAdminSubjects('desc-class','desc-subject');
+    updateAdminSubjects('manage-class','manage-subject',true);updateAdminSubjects('ana-class-filter','ana-subject-filter',true);
+    updateAdminSubjects('score-class-filter','score-subject-filter',true);
+    document.getElementById('mcq-subject').addEventListener('change',loadMcqTopics);
+    document.getElementById('desc-subject').addEventListener('change',loadDescTopics);
+    document.getElementById('manage-subject').addEventListener('change',loadManageQuestions);
+    document.getElementById('manage-topic').addEventListener('change',loadManageQuestions);
+    updateSingleAnswerSelect();selectMcqTerm('term1');selectDescTerm('term1');
+    filterManageByTerm('all');filterManageByType('mcq');
+    window.switchMcqTab('excel');
+    console.log('✅ உங்கள் ஆசிரியர் v9.0 — Card Stack UI loaded!');
+});
+
+// OpenRouter
+// OR_FREE_MODELS defined in core
+window._aiGeneratedQuestions=[];
+async function callOpenRouter(prompt,apiKey){
+    for(const model of OR_FREE_MODELS){
+        try{const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','HTTP-Referer':'https://ungal-asiriyar.app','X-Title':'Ungal Asiriyar'},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:3000,temperature:0.7})});
+        if(!res.ok)continue;const data=await res.json();const text=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';if(text)return{text,model};}
+        catch(e){console.warn(model,e.message);}
+    }throw new Error('All models failed');
+}
+async function generateAIQuestions(){
+    const topicInput=document.getElementById('ai-topic-input').value.trim();const count=document.getElementById('ai-q-count').value;const lang=document.getElementById('ai-language').value;const classVal=document.getElementById('mcq-class').value;const subject=document.getElementById('mcq-subject').value;const statusEl=document.getElementById('ai-status');const btn=document.getElementById('ai-generate-btn');
+    if(!topicInput){statusEl.textContent='❌ Topic இல்லை';statusEl.className='smsg er';statusEl.style.display='block';return;}
+    if(!classVal||!subject){statusEl.textContent='❌ வகுப்பு/பாடம் தேர்வு செய்யவும்';statusEl.className='smsg er';statusEl.style.display='block';return;}
+    const apiKey=localStorage.getItem('ua_openrouter_key')||'';
+    if(!apiKey){statusEl.innerHTML='❌ API Key இல்லை! Settings-ல் சேர்க்கவும்';statusEl.className='smsg er';statusEl.style.display='block';return;}
+    btn.disabled=true;btn.textContent='⏳ Generating…';statusEl.textContent=`AI ${count} questions உருவாக்குகிறது…`;statusEl.className='smsg';statusEl.style.display='block';document.getElementById('ai-preview').style.display='none';
+    const langInstr=lang==='tamil'?'All questions MUST be in Tamil script only.':lang==='english'?'English only.':'Mix Tamil and English.';
+    const prompt=`Create ${count} MCQ questions for Class ${classVal} ${subject}, Topic: "${topicInput}". ${langInstr}
+Return ONLY a JSON array:
+[{"question":"...","option1":"...","option2":"...","option3":"...","option4":"...","answer":"exact correct option text"}]`;
+    try{const{text,model}=await callOpenRouter(prompt,apiKey);const clean=text.replace(/\`\`\`json|\`\`\`/g,'').trim();const si=clean.indexOf('['),ei=clean.lastIndexOf(']');if(si===-1)throw new Error('JSON not found');const questions=JSON.parse(clean.substring(si,ei+1));const valid=questions.filter(q=>q.question&&q.option1&&q.option2&&q.answer);if(!valid.length)throw new Error('No valid questions');window._aiGeneratedQuestions=valid;
+    document.getElementById('ai-preview-count').textContent=`✅ ${valid.length} questions generated (${model.split('/')[1]})`;
+    let html='';valid.forEach((q,i)=>{html+=`<div style="background:var(--bg);border-radius:var(--r3);padding:11px;margin-bottom:7px;"><div style="font-size:13px;font-weight:600;margin-bottom:7px;">${i+1}. ${q.question}</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${[q.option1,q.option2,q.option3,q.option4].map((o,j)=>`<span style="font-size:11px;padding:4px 9px;border-radius:8px;font-weight:600;background:${o===q.answer?'var(--grn-lt)':'#fff'};color:${o===q.answer?'var(--grn)':'var(--text2)'};border:1px solid ${o===q.answer?'rgba(52,199,89,.3)':'var(--border)'};">${['A','B','C','D'][j]} ${o}${o===q.answer?' ✓':''}</span>`).join('')}</div></div>`;});
+    document.getElementById('ai-questions-list').innerHTML=html;document.getElementById('ai-preview').style.display='block';
+    statusEl.textContent='✅ Ready to save!';statusEl.className='smsg ok';
+    }catch(err){statusEl.textContent='❌ '+err.message;statusEl.className='smsg er';}
+    btn.disabled=false;btn.textContent='✦ AI Generate';
+}
+async function uploadAIQuestions(){
+    const questions=window._aiGeneratedQuestions||[];const classVal=document.getElementById('mcq-class').value;const subject=document.getElementById('mcq-subject').value;const topic=document.getElementById('mcq-topic').value;const term=document.getElementById('mcq-selected-term').value;const statusEl=document.getElementById('ai-status');
+    if(!classVal||!subject||!topic||!term){statusEl.textContent='❌ வகுப்பு/பாடம்/தலைப்பு/Term தேர்வு செய்யவும்';statusEl.className='smsg er';statusEl.style.display='block';return;}
+    if(!questions.length){statusEl.textContent='❌ Generate first';statusEl.className='smsg er';statusEl.style.display='block';return;}
+    statusEl.textContent='⏳ Saving…';statusEl.className='smsg';statusEl.style.display='block';
+    try{const batch=db.batch();questions.forEach(q=>{const ref=db.collection('questions').doc();const data={...q,type:'mcq',class:classVal,subject,topic,term,difficulty:'medium',createdAt:new Date().toISOString()};batch.set(ref,data);lsSaveQuestion(ref.id,data);});await batch.commit();statusEl.textContent=`✅ ${questions.length} questions saved!`;statusEl.className='smsg ok';document.getElementById('ai-preview').style.display='none';document.getElementById('ai-topic-input').value='';window._aiGeneratedQuestions=[];setTimeout(()=>{statusEl.style.display='none';},4000);}
+    catch(err){statusEl.textContent='❌ '+err.message;statusEl.className='smsg er';}
+}
+function downloadExcelTemplate(){try{const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet([['Question','Option A','Option B','Option C','Option D','Correct Answer'],['Sample Q?','A','B','C','D','A']]);ws['!cols']=[{wch:40},{wch:20},{wch:20},{wch:20},{wch:20},{wch:20}];XLSX.utils.book_append_sheet(wb,ws,'Questions');const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});const blob=new Blob([new Uint8Array(wbout)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='MCQ_Template.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){const b64=XLSX.write(XLSX.utils.book_new(),{bookType:'xlsx',type:'base64'});popupAlert('Download failed','⚠️');}}
+window._excelParsedQuestions=[];
+function handleExcelFile(input){const file=input.files[0];if(!file)return;document.getElementById('excel-file-name').textContent='📄 '+file.name;const reader=new FileReader();reader.onload=(e)=>{try{const wb=XLSX.read(e.target.result,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const firstCell=rows[0]?String(rows[0][0]||''):'';const startRow=(firstCell.toLowerCase().includes('question')||firstCell.includes('கேள்வி'))?1:0;const questions=[];for(let i=startRow;i<rows.length;i++){const r=rows[i];const q=String(r[0]||'').trim(),o1=String(r[1]||'').trim(),o2=String(r[2]||'').trim(),o3=String(r[3]||'').trim(),o4=String(r[4]||'').trim(),ans=String(r[5]||'').trim();if(q&&o1&&o2&&ans)questions.push({question:q,option1:o1,option2:o2,option3:o3,option4:o4,answer:ans});}window._excelParsedQuestions=questions;const prev=document.getElementById('excel-preview');if(!questions.length){document.getElementById('excel-status').textContent='❌ No questions found';document.getElementById('excel-status').className='smsg er';document.getElementById('excel-status').style.display='block';prev.style.display='none';return;}document.getElementById('excel-preview-count').textContent=`✅ ${questions.length} questions found`;let html='<table><thead><tr><th>#</th><th style="text-align:left;">Question</th><th style="text-align:left;">Answer</th></tr></thead><tbody>';questions.slice(0,10).forEach((q,i)=>{html+=`<tr><td>${i+1}</td><td style="text-align:left;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.question}</td><td style="text-align:left;color:var(--grn);font-weight:600;">${q.answer}</td></tr>`;});if(questions.length>10)html+=`<tr><td colspan="3" style="color:var(--text2);">+${questions.length-10} more</td></tr>`;html+='</tbody></table>';document.getElementById('excel-preview-table').innerHTML=html;prev.style.display='block';}catch(err){document.getElementById('excel-status').textContent='❌ '+err.message;document.getElementById('excel-status').className='smsg er';document.getElementById('excel-status').style.display='block';}};reader.readAsArrayBuffer(file);}
+async function uploadExcelQuestions(){const questions=window._excelParsedQuestions||[];const classVal=document.getElementById('mcq-class').value,subject=document.getElementById('mcq-subject').value,topic=document.getElementById('mcq-topic').value,term=document.getElementById('mcq-selected-term').value;const statusEl=document.getElementById('excel-status');if(!classVal||!subject||!topic||!term){statusEl.textContent='❌ வகுப்பு/பாடம்/தலைப்பு/Term தேர்வு செய்யவும்';statusEl.className='smsg er';statusEl.style.display='block';return;}if(!questions.length){statusEl.textContent='❌ No file selected';statusEl.className='smsg er';statusEl.style.display='block';return;}statusEl.textContent=`⏳ ${questions.length} saving…`;statusEl.className='smsg';statusEl.style.display='block';try{const BATCH_SIZE=400;let saved=0;for(let start=0;start<questions.length;start+=BATCH_SIZE){const batch=db.batch();questions.slice(start,start+BATCH_SIZE).forEach(q=>{const ref=db.collection('questions').doc();const data={...q,type:'mcq',class:classVal,subject,topic,term,difficulty:'medium',createdAt:new Date().toISOString()};batch.set(ref,data);lsSaveQuestion(ref.id,data);saved++;});await batch.commit();}statusEl.textContent=`✅ ${saved} saved!`;statusEl.className='smsg ok';document.getElementById('excel-preview').style.display='none';window._excelParsedQuestions=[];setTimeout(()=>{statusEl.style.display='none';},4000);}catch(err){statusEl.textContent='❌ '+err.message;statusEl.className='smsg er';}}
+function previewBulkCount(){const text=document.getElementById('simple-text').value.trim();const badge=document.getElementById('bulk-count-badge');if(!text){badge.style.display='none';return;}const count=Math.floor(text.split('\n').map(l=>l.trim()).filter(l=>l!=='').length/6);if(count>0){badge.textContent=count+' Qs';badge.style.display='block';}else badge.style.display='none';}
+
+</script>
+</body>
+</html>
