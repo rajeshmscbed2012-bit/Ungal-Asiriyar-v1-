@@ -6,10 +6,9 @@ const CACHE_NAME = 'ungal-aasiriyar-v4.0';
 const ASSETS = [
   './',
   './index.html',
-  './ungal_aasiriyar.html',
   './manifest.json',
   './20260315_085358.png',
-  'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
@@ -71,7 +70,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Offline fallback
         if (event.request.destination === 'document') {
-          return caches.match('./ungal_aasiriyar.html');
+          return caches.match('./index.html');
         }
       });
     })
