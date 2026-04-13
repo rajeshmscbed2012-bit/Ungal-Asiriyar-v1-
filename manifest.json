@@ -2,8 +2,9 @@
   "name": "உங்கள் ஆசிரியர் - Ungal Aasiriyar",
   "short_name": "உங்கள் ஆசிரியர்",
   "description": "Tamil Nadu School Quiz App - அறிவின் ஒளி, வளர்ச்சியின் பாதை",
-  "start_url": "./index.html",
-  "display": "standalone" "fullscreen",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#4f46e5",
   "theme_color": "#4f46e5",
@@ -23,7 +24,9 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education"],
+  "categories": [
+    "education"
+  ],
   "screenshots": [],
   "prefer_related_applications": false
 }

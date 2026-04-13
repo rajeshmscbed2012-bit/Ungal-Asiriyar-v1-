@@ -1,84 +1,104 @@
 // ================================================================
-// உங்கள் ஆசிரியர் v4.0 — Service Worker
+// உங்கள் ஆசிரியர் — Service Worker
 // ================================================================
 
-const CACHE_NAME = 'ungal-aasiriyar-v4.0';
-const ASSETS = [
+const CACHE_NAME = 'ungal-aasiriyar-v10.0.0';
+
+const APP_SHELL_ASSETS = [
   './',
   './index.html',
-  './ungal_aasiriyar.html',
   './manifest.json',
   './20260315_085358.png',
-  'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
 ];
 
-// ---- INSTALL: cache all assets ----
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS.map(url => new Request(url, { mode: 'no-cors' })));
-    }).then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.allSettled(APP_SHELL_ASSETS.map(async url => {
+      try {
+        await cache.add(url);
+      } catch (_) {
+        // Optional asset failed to cache; continue install.
+      }
+    }));
+    await self.skipWaiting();
+  })());
 });
 
-// ---- ACTIVATE: remove old caches ----
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
-// ---- FETCH: cache-first for assets, network-first for Firebase ----
 self.addEventListener('fetch', event => {
-  const url = event.request.url;
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // Firebase — always network
-  if (url.includes('firestore.googleapis.com') || url.includes('firebase')) {
-    event.respondWith(
-      fetch(event.request).catch(() => new Response('{}', { headers: { 'Content-Type': 'application/json' } }))
-    );
+  if (request.method !== 'GET' || !/^https?:$/.test(url.protocol)) return;
+
+  const isFirebase = url.hostname.includes('firebase') || url.hostname.includes('firestore.googleapis.com');
+  if (isFirebase) {
+    event.respondWith(fetch(request).catch(() => new Response('{}', { headers: { 'Content-Type': 'application/json' } })));
     return;
   }
 
-  // Fonts — cache first
-  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
-    event.respondWith(
-      caches.match(event.request).then(cached => cached || fetch(event.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return res;
-      }))
-    );
+  const isNavigation = request.mode === 'navigate';
+  if (isNavigation) {
+    event.respondWith((async () => {
+      try {
+        const network = await fetch(request);
+        const cache = await caches.open(CACHE_NAME);
+        cache.put('./index.html', network.clone());
+        return network;
+      } catch (_) {
+        return (await caches.match('./index.html')) || Response.error();
+      }
+    })());
     return;
   }
 
-  // App files — cache first, then network
-  event.respondWith(
-    caches.match(event.request).then(cached => {
+  const isSameOrigin = url.origin === self.location.origin;
+  if (isSameOrigin) {
+    event.respondWith((async () => {
+      const cached = await caches.match(request);
       if (cached) return cached;
-      return fetch(event.request).then(res => {
-        if (!res || res.status !== 200 || res.type === 'opaque') return res;
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return res;
-      }).catch(() => {
-        // Offline fallback
-        if (event.request.destination === 'document') {
-          return caches.match('./ungal_aasiriyar.html');
+      const network = await fetch(request);
+      if (network && network.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, network.clone());
+      }
+      return network;
+    })());
+    return;
+  }
+
+  const isStaticCdn =
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com') ||
+    url.hostname.includes('gstatic.com') ||
+    url.hostname.includes('cdnjs.cloudflare.com');
+
+  if (isStaticCdn) {
+    event.respondWith((async () => {
+      const cached = await caches.match(request);
+      const networkPromise = fetch(request).then(response => {
+        if (response && response.ok) {
+          caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
         }
+        return response;
       });
-    })
-  );
+      return cached || networkPromise;
+    })());
+  }
 });
 
-// ---- PUSH: future notification support ----
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

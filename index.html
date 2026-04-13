@@ -2,8 +2,8 @@
 <html lang="ta">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>உங்கள் ஆசிரியர் · v9</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>உங்கள் ஆசிரியர் · v10</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
@@ -44,6 +44,28 @@
   --r3: 10px;
   --shadow-card: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
   --shadow-float:0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+  /* neutral aliases used by legacy cards */
+  --z900:#0f172a;
+  --z800:#1f2937;
+  --z700:#334155;
+  --z400:#94a3b8;
+  --z300:#cbd5e1;
+  --ind2:#a78bfa;
+  --em:#10b981;
+}
+
+:focus-visible{
+  outline:2px solid var(--ind);
+  outline-offset:2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
 }
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
