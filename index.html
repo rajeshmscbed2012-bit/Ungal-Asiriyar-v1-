@@ -2316,6 +2316,7 @@ function doLogin(){
     if(t&&t.pwd===pwd){
         err.classList.remove('show');
         localStorage.setItem('ua_last_teacher_user',user);
+        localStorage.setItem('ua_last_teacher_pwd',pwd);
         window.currentTeacher={username:user,name:t.name,subject:t.subject};
         document.getElementById('login-page').style.display='none';
         document.getElementById('app').classList.add('on');
@@ -2330,8 +2331,11 @@ function doLogin(){
 }
 function doAutoTeacherLogin(){
     const u=localStorage.getItem('ua_last_teacher_user')||'';
-    if(!u||!teacherLogins[u])return;
-    document.getElementById('l-user').value=u;doLogin();
+    const p=localStorage.getItem('ua_last_teacher_pwd')||'';
+    if(!u||!p||!teacherLogins[u])return;
+    document.getElementById('l-user').value=u;
+    document.getElementById('l-pwd').value=p;
+    doLogin();
 }
 function doLogout(){
     window.currentTeacher=null;
@@ -2669,7 +2673,7 @@ function adminDeleteAllStudentScores(){
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded',()=>{
     applyDarkMode();applyFontSize();applyPrefs();initTopics();
-    updateFontBtns();checkAutoBanner();
+    updateFontBtns();checkAutoBanner();doAutoTeacherLogin();
     const classes=['1','2','3','4','5','6','7','8','9','10','11','12'];
     ['mcq-class','desc-class','manage-class','ana-class-filter','score-class-filter'].forEach(id=>{
         const el=document.getElementById(id);
